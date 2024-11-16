@@ -13,14 +13,13 @@ TrainHub is a backend application built with NestJS, designed to streamline gym 
 ### Prerequisites
 - Node.js (>=16.x)
 - NPM (>=8.x) or Yarn
-- MongoDB
 
 ### Installation
 
 1. Clone the repository:
 
     ```bash
-    git clone https://github.com/yourusername/trainhub.git
+    git clone https://github.com/OsamaNuserat/train-hub-backend
     cd trainhub
     ```
 
