@@ -1,4 +1,3 @@
-// src/auth/entities/user.entity.ts
 import { Entity, Column, PrimaryGeneratedColumn, Index } from 'typeorm';
 
 @Entity()
@@ -9,8 +8,8 @@ export class User {
   @Column()
   username: string;
 
-  @Column()
   @Index({ unique: true })
+  @Column()
   email: string;
 
   @Column()
@@ -18,4 +17,7 @@ export class User {
 
   @Column({ default: 'user' })
   role: string;
+
+  @Column({ default: false })
+  confirmEmail: boolean;
 }

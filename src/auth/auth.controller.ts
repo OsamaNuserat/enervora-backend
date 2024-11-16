@@ -1,9 +1,11 @@
-import { Controller, Get, Post, Body, UseGuards, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Query, UseGuards, Req } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { Roles } from './decorators/roles.decorator';
 import { RolesGuard } from './guards/roles.guard';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import { Role } from './role.enum';
+import { Request } from 'express';
 import { SignupDto } from './dto/signup.dto';
 import { SigninDto } from './dto/signin.dto';
 
@@ -16,8 +18,8 @@ export class AuthController {
   @ApiOperation({ summary: 'User signup' })
   @ApiResponse({ status: 201, description: 'User registered successfully' })
   @ApiResponse({ status: 409, description: 'Email already exists' })
-  async signup(@Body() signupDto: SignupDto) {
-    return this.authService.signup(signupDto);
+  async signup(@Body() signupDto: SignupDto, @Req() req: Request) {
+    return this.authService.signup(signupDto, req);
   }
 
   @Post('signin')
@@ -26,6 +28,14 @@ export class AuthController {
   @ApiResponse({ status: 401, description: 'Invalid credentials' })
   async signin(@Body() signinDto: SigninDto) {
     return this.authService.signin(signinDto);
+  }
+
+  @Get('confirm-email')
+  @ApiOperation({ summary: 'Confirm email' })
+  @ApiResponse({ status: 200, description: 'Email confirmed successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid token' })
+  async confirmEmail(@Query('token') token: string) {
+    return this.authService.confirmEmail(token);
   }
 
   @Get('google')
@@ -44,7 +54,7 @@ export class AuthController {
 
   @Get('admin-only')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('admin')
+  @Roles(Role.Admin)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Admin only route' })
   @ApiResponse({ status: 200, description: 'Access granted' })
@@ -54,7 +64,7 @@ export class AuthController {
 
   @Get('coach-only')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles('coach')
+  @Roles(Role.Coach)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Coach only route' })
   @ApiResponse({ status: 200, description: 'Access granted' })
