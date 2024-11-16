@@ -1,37 +1,45 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, ConflictException, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { SigninDto, SignupDto } from './dto/signing.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { User } from './entities/user.entity';
+import { SignupDto } from './dto/signup.dto';
+import { SigninDto } from './dto/signin.dto';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
-  private users = []; // This should be replaced with a proper database
-
-  constructor(private readonly jwtService: JwtService) {}
+  constructor(
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+    private readonly jwtService: JwtService,
+  ) {}
 
   async signup(signupDto: SignupDto) {
+    const existingUser = await this.userRepository.findOne({ where: { email: signupDto.email } });
+    if (existingUser) {
+      throw new ConflictException('Email already exists');
+    }
     if (signupDto.password !== signupDto.confirmPassword) {
       throw new Error('Passwords do not match');
     }
-    const user = { id: Date.now(), ...signupDto };
-    this.users.push(user);
+    const hashedPassword = await bcrypt.hash(signupDto.password, 10);
+    const user = this.userRepository.create({
+      ...signupDto,
+      password: hashedPassword,
+    });
+    await this.userRepository.save(user);
     return { message: 'User registered successfully' };
   }
 
   async signin(signinDto: SigninDto) {
-    const user = this.users.find(
-      (user) => user.email === signinDto.email && user.password === signinDto.password,
-    );
-    if (!user) {
-      throw new Error('Invalid credentials');
+    const user = await this.userRepository.findOne({
+      where: { email: signinDto.email },
+    });
+    if (!user || !(await bcrypt.compare(signinDto.password, user.password))) {
+      throw new UnauthorizedException('Invalid credentials');
     }
     const payload = { username: user.username, sub: user.id };
-    return {
-      access_token: this.jwtService.sign(payload),
-    };
-  }
-
-  async login(user: any) {
-    const payload = { username: user.username, sub: user.userId };
     return {
       access_token: this.jwtService.sign(payload),
     };
