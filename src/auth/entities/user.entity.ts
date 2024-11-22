@@ -1,3 +1,4 @@
+// src/auth/entities/user.entity.ts
 import { Entity, Column, PrimaryGeneratedColumn, Index } from 'typeorm';
 
 @Entity()
@@ -20,4 +21,10 @@ export class User {
 
   @Column({ default: false })
   confirmEmail: boolean;
+
+  @Column({ nullable: true })
+  resetPasswordToken: string;
+
+  @Column({ nullable: true })
+  resetPasswordExpires: Date;
 }

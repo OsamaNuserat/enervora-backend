@@ -1,13 +1,23 @@
-import { Injectable, ConflictException, UnauthorizedException, Inject, Req } from '@nestjs/common';
+import {
+  Injectable,
+  ConflictException,
+  UnauthorizedException,
+  Req,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, MoreThan } from 'typeorm';
 import { User } from './entities/user.entity';
 import { SignupDto } from './dto/signup.dto';
 import { SigninDto } from './dto/signin.dto';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
 import * as bcrypt from 'bcrypt';
 import * as nodemailer from 'nodemailer';
 import { Request } from 'express';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class AuthService {
@@ -18,7 +28,9 @@ export class AuthService {
   ) {}
 
   async signup(signupDto: SignupDto, @Req() req: Request) {
-    const existingUser = await this.userRepository.findOne({ where: { email: signupDto.email } });
+    const existingUser = await this.userRepository.findOne({
+      where: { email: signupDto.email },
+    });
     if (existingUser) {
       throw new ConflictException('Email already exists');
     }
@@ -38,7 +50,10 @@ export class AuthService {
     const confirmationUrl = `${req.protocol}://${req.get('host')}/auth/confirm-email?token=${token}`;
     await this.sendConfirmationEmail(user.email, confirmationUrl);
 
-    return { message: 'User registered successfully. Please check your email to confirm your account.' };
+    return {
+      message:
+        'User registered successfully. Please check your email to confirm your account.',
+    };
   }
 
   async signin(signinDto: SigninDto) {
@@ -49,7 +64,9 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
     if (!user.confirmEmail) {
-      throw new UnauthorizedException('Please confirm your email before signing in.');
+      throw new UnauthorizedException(
+        'Please confirm your email before signing in.',
+      );
     }
     const payload = { username: user.username, sub: user.id };
     return {
@@ -66,6 +83,59 @@ export class AuthService {
     user.confirmEmail = true;
     await this.userRepository.save(user);
     return { message: 'Email confirmed successfully' };
+  }
+
+  async forgotPassword(forgotPasswordDto: ForgotPasswordDto, @Req() req: Request) {
+    const user = await this.userRepository.findOne({ where: { email: forgotPasswordDto.email } });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const token = crypto.randomBytes(20).toString('hex');
+    user.resetPasswordToken = token;
+    user.resetPasswordExpires = new Date(Date.now() + 3600000); // 1 hour
+    await this.userRepository.save(user);
+
+    const resetUrl = `${req.protocol}://${req.get('host')}/auth/reset-password?token=${token}`;
+    await this.sendResetPasswordEmail(user.email, resetUrl);
+
+    return { message: 'Password reset email sent' };
+  }
+
+  async resetPassword(token: string, newPassword: string) {
+    const user = await this.userRepository.findOne({
+      where: {
+        resetPasswordToken: token,
+        resetPasswordExpires: MoreThan(new Date()),
+      },
+    });
+    if (!user) {
+      throw new BadRequestException('Invalid or expired token');
+    }
+  
+    user.password = await bcrypt.hash(newPassword, 10);
+    user.resetPasswordToken = null;
+    user.resetPasswordExpires = null;
+    await this.userRepository.save(user);
+  
+    return { message: 'Password reset successfully' };
+  }
+
+  async changePassword(userId: number, changePasswordDto: ChangePasswordDto) {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const isMatch = await bcrypt.compare(changePasswordDto.currentPassword, user.password);
+    if (!isMatch) {
+      throw new UnauthorizedException('Current password is incorrect');
+    }
+
+    user.password = await bcrypt.hash(changePasswordDto.newPassword, 10);
+    await this.userRepository.save(user);
+
+    return { message: 'Password changed successfully' };
   }
 
   private async sendConfirmationEmail(email: string, url: string) {
@@ -146,6 +216,31 @@ export class AuthService {
       from: process.env.GMAIL_USER,
       to: email,
       subject: 'Confirm your email',
+      html: htmlTemplate,
+    };
+
+    await transporter.sendMail(mailOptions);
+  }
+
+  private async sendResetPasswordEmail(email: string, url: string) {
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.GMAIL_USER,
+        pass: process.env.GMAIL_PASS,
+      },
+    });
+
+    const htmlTemplate = `
+      <h1>Password Reset</h1>
+      <p>You requested a password reset. Click the link below to reset your password:</p>
+      <a href="${url}">Reset Password</a>
+    `;
+
+    const mailOptions = {
+      from: process.env.GMAIL_USER,
+      to: email,
+      subject: 'Password Reset',
       html: htmlTemplate,
     };
 
