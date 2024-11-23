@@ -9,3 +9,10 @@ export enum Role {
   Admin = 'admin',
   Coach = 'coach',
 }
+
+export enum UserStatus {
+    ACTIVE = 'Active',
+    INACTIVE = 'Inactive',
+    SUSPENDED = 'Suspended',
+  }
+  

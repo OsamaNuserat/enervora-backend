@@ -1,4 +1,6 @@
-import { Entity, Column, PrimaryGeneratedColumn, Index } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, Index, OneToMany } from 'typeorm';
+import { Content } from '../../content/entities/content.entity';
+import { Subscription } from '../../subscription/entities/subscription.entity';
 import { ThemePreferences } from '../enum';
 
 @Entity()
@@ -51,4 +53,34 @@ export class User {
 
   @Column({ nullable: true })
   otpExpires: Date;
+
+  @Column({ nullable: true })
+  instagramUrl: string;
+
+  @Column({ nullable: true })
+  facebookUrl: string;
+
+  @Column({ nullable: true })
+  linkedin: string;
+
+  @Column({ nullable: true })
+  youtube: string;
+
+  @Column({ default: 0 })
+  subscriberCount: number;
+
+  @Column({ nullable: true })
+  country: string;
+
+  @Column({ nullable: true })
+  city: string;
+
+  @OneToMany(() => Content, content => content.user)
+  contents: Content[];
+
+  @OneToMany(() => Subscription, subscription => subscription.user)
+  subscriptions: Subscription[];
+
+  @OneToMany(() => Subscription, subscription => subscription.coach)
+  subscribers: Subscription[];
 }
