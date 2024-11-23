@@ -1,4 +1,4 @@
-import { Controller, Get, Put, Body, UseGuards, Req, UploadedFiles, UseInterceptors } from '@nestjs/common';
+import { Controller, Get, Put, Body, UseGuards, Req, UploadedFiles, UseInterceptors, Post } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { UserService } from './user.service';
@@ -67,5 +67,26 @@ export class UserController {
   @ApiResponse({ status: 404, description: 'User not found' })
   async getProfile(@Req() req: RequestWithUser) {
     return this.userService.getProfile(req.user.id);
+  }
+
+  @Post('send-otp')
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Send OTP for phone number verification' })
+  @ApiResponse({ status: 200, description: 'OTP sent successfully' })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  async sendOtp(@Req() req: RequestWithUser) {
+    return this.userService.sendOtp(req.user.id);
+  }
+
+  @Post('verify-otp')
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Verify OTP for phone number' })
+  @ApiResponse({ status: 200, description: 'Phone number verified successfully' })
+  @ApiResponse({ status: 400, description: 'Invalid or expired OTP' })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  async verifyOtp(@Req() req: RequestWithUser, @Body('otp') otp: string) {
+    return this.userService.verifyOtp(req.user.id, otp);
   }
 }

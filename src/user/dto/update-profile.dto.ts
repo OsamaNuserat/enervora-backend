@@ -1,4 +1,3 @@
-// src/user/dto/update-profile.dto.ts
 import { IsOptional, IsString, IsEmail, IsEnum } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { ThemePreferences } from 'src/auth/enum';

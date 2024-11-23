@@ -1,4 +1,3 @@
-// src/auth/entities/user.entity.ts
 import { Entity, Column, PrimaryGeneratedColumn, Index } from 'typeorm';
 import { ThemePreferences } from '../enum';
 
@@ -43,4 +42,13 @@ export class User {
 
   @Column({ type: 'enum', enum: ThemePreferences, default: ThemePreferences.SYSTEM })
   preferences: ThemePreferences;
+
+  @Column({ nullable: true })
+  phoneNumber: string;
+
+  @Column({ nullable: true })
+  otp: string;
+
+  @Column({ nullable: true })
+  otpExpires: Date;
 }
