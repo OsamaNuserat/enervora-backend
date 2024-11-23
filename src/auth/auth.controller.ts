@@ -7,10 +7,9 @@ import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
-import { Role } from './role.enum';
-import { Request } from 'express';
 import { SignupDto } from './dto/signup.dto';
 import { SigninDto } from './dto/signin.dto';
+import { Role } from './enum';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -21,8 +20,8 @@ export class AuthController {
   @ApiOperation({ summary: 'User signup' })
   @ApiResponse({ status: 201, description: 'User registered successfully' })
   @ApiResponse({ status: 409, description: 'Email already exists' })
-  async signup(@Body() signupDto: SignupDto, @Req() req: Request) {
-    return this.authService.signup(signupDto, req);
+  async signup(@Body() signupDto: SignupDto) {
+    return this.authService.signup(signupDto);
   }
 
   @Post('signin')
@@ -45,8 +44,8 @@ export class AuthController {
   @ApiOperation({ summary: 'Forgot password' })
   @ApiResponse({ status: 200, description: 'Password reset email sent' })
   @ApiResponse({ status: 404, description: 'User not found' })
-  async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto, @Req() req: Request) {
-    return this.authService.forgotPassword(forgotPasswordDto, req);
+  async forgotPassword(@Body() forgotPasswordDto: ForgotPasswordDto) {
+    return this.authService.forgotPassword(forgotPasswordDto);
   }
 
   @Post('reset-password')
@@ -78,7 +77,7 @@ export class AuthController {
   @UseGuards(AuthGuard('google'))
   @ApiOperation({ summary: 'Google authentication callback' })
   async googleAuthRedirect(@Req() req) {
-        return this.authService.signin(req.user);
+    return this.authService.signin(req.user);
   }
 
   @Get('admin-only')

@@ -23,7 +23,7 @@ import { User } from './entities/user.entity';
       }),
       inject: [ConfigService],
     }),
-    TypeOrmModule.forFeature([User]), 
+    TypeOrmModule.forFeature([User]),
   ],
   providers: [AuthService, GoogleStrategy, JwtStrategy],
   controllers: [AuthController],

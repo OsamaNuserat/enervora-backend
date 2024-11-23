@@ -1,5 +1,6 @@
 // src/auth/entities/user.entity.ts
 import { Entity, Column, PrimaryGeneratedColumn, Index } from 'typeorm';
+import { ThemePreferences } from '../enum';
 
 @Entity()
 export class User {
@@ -27,4 +28,19 @@ export class User {
 
   @Column({ nullable: true })
   resetPasswordExpires: Date;
+
+  @Column({ nullable: true })
+  profilePicture: string;
+
+  @Column({ nullable: true })
+  bannerPicture: string;
+
+  @Column({ default: 'Active' })
+  status: string;
+
+  @Column({ nullable: true })
+  bio: string;
+
+  @Column({ type: 'enum', enum: ThemePreferences, default: ThemePreferences.SYSTEM })
+  preferences: ThemePreferences;
 }

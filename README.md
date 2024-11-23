@@ -1,6 +1,6 @@
-# TrainHub
+# VitalityShare
 
-TrainHub is a backend application built with NestJS, designed to streamline gym coaching services. It provides features like OAuth-based authentication, role-based access control, and scalable APIs for managing users, coaches, and training programs.
+VitalityShare is a backend application built with NestJS, designed to streamline gym coaching services. It provides features like OAuth-based authentication, role-based access control, and scalable APIs for managing users, coaches, and training programs.
 
 ## Features
 - OAuth authentication with Google.
@@ -19,8 +19,8 @@ TrainHub is a backend application built with NestJS, designed to streamline gym 
 1. Clone the repository:
 
     ```bash
-    git clone https://github.com/OsamaNuserat/train-hub-backend
-    cd trainhub
+    git clone https://github.com/OsamaNuserat/vitalityshare-backend
+    cd vitalityshare-backend
     ```
 
 2. Install dependencies:

@@ -2,22 +2,21 @@ import {
   Injectable,
   ConflictException,
   UnauthorizedException,
-  Req,
   NotFoundException,
   BadRequestException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, MoreThan } from 'typeorm';
-import { User } from './entities/user.entity';
 import { SignupDto } from './dto/signup.dto';
 import { SigninDto } from './dto/signin.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import * as bcrypt from 'bcrypt';
 import * as nodemailer from 'nodemailer';
-import { Request } from 'express';
 import * as crypto from 'crypto';
+import { User } from './entities/user.entity';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
@@ -25,9 +24,10 @@ export class AuthService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
   ) {}
 
-  async signup(signupDto: SignupDto, @Req() req: Request) {
+  async signup(signupDto: SignupDto) {
     const existingUser = await this.userRepository.findOne({
       where: { email: signupDto.email },
     });
@@ -47,7 +47,9 @@ export class AuthService {
 
     // Send confirmation email
     const token = this.jwtService.sign({ email: user.email });
-    const confirmationUrl = `${req.protocol}://${req.get('host')}/auth/confirm-email?token=${token}`;
+    const protocol = this.configService.get<string>('APP_PROTOCOL');
+    const host = this.configService.get<string>('APP_HOST');
+    const confirmationUrl = `${protocol}://${host}/auth/confirm-email?token=${token}`;
     await this.sendConfirmationEmail(user.email, confirmationUrl);
 
     return {
@@ -85,7 +87,7 @@ export class AuthService {
     return { message: 'Email confirmed successfully' };
   }
 
-  async forgotPassword(forgotPasswordDto: ForgotPasswordDto, @Req() req: Request) {
+  async forgotPassword(forgotPasswordDto: ForgotPasswordDto) {
     const user = await this.userRepository.findOne({ where: { email: forgotPasswordDto.email } });
     if (!user) {
       throw new NotFoundException('User not found');
@@ -96,7 +98,9 @@ export class AuthService {
     user.resetPasswordExpires = new Date(Date.now() + 3600000); // 1 hour
     await this.userRepository.save(user);
 
-    const resetUrl = `${req.protocol}://${req.get('host')}/auth/reset-password?token=${token}`;
+    const protocol = this.configService.get<string>('APP_PROTOCOL');
+    const host = this.configService.get<string>('APP_HOST');
+    const resetUrl = `${protocol}://${host}/auth/reset-password?token=${token}`;
     await this.sendResetPasswordEmail(user.email, resetUrl);
 
     return { message: 'Password reset email sent' };
@@ -112,12 +116,12 @@ export class AuthService {
     if (!user) {
       throw new BadRequestException('Invalid or expired token');
     }
-  
+
     user.password = await bcrypt.hash(newPassword, 10);
     user.resetPasswordToken = null;
     user.resetPasswordExpires = null;
     await this.userRepository.save(user);
-  
+
     return { message: 'Password reset successfully' };
   }
 
