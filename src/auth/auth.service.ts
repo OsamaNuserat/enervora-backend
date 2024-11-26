@@ -18,6 +18,7 @@ import * as crypto from 'crypto';
 import { User } from './entities/user.entity';
 import { ConfigService } from '@nestjs/config';
 import { OtpService } from 'src/otp/otp.service';
+import { MailService } from 'src/mail/mail.service';
 
 @Injectable()
 export class AuthService {
@@ -27,6 +28,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     private readonly otpService: OtpService,
+    private readonly mailService: MailService,
   ) {}
 
   async signup(signupDto: SignupDto) {
@@ -47,7 +49,6 @@ export class AuthService {
     });
     await this.userRepository.save(user);
 
-    // Send confirmation email
     const token = this.jwtService.sign({ email: user.email });
     const protocol = this.configService.get<string>('APP_PROTOCOL');
     const host = this.configService.get<string>('APP_HOST');
@@ -149,113 +150,22 @@ export class AuthService {
     return { message: 'Password changed successfully' };
   }
 
-  private async sendConfirmationEmail(email: string, url: string) {
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.GMAIL_USER,
-        pass: process.env.GMAIL_PASS,
-      },
-    });
+  async sendConfirmationEmail(email: string, token: string) {
+    const subject = 'Email Confirmation';
+    const text = `Please confirm your email by clicking on the following link: ${token}`;
 
-    const htmlTemplate = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Email Confirmation</title>
-        <style>
-          body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            margin: 0;
-            padding: 0;
-          }
-          .container {
-            width: 100%;
-            max-width: 600px;
-            margin: 0 auto;
-            background-color: #ffffff;
-            padding: 20px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-          }
-          .header {
-            text-align: center;
-            padding: 10px 0;
-            background-color: #007bff;
-            color: #ffffff;
-          }
-          .content {
-            padding: 20px;
-          }
-          .button {
-            display: inline-block;
-            padding: 10px 20px;
-            margin: 20px 0;
-            background-color: #007bff;
-            color: #ffffff;
-            text-decoration: none;
-            border-radius: 5px;
-          }
-          .footer {
-            text-align: center;
-            padding: 10px 0;
-            font-size: 12px;
-            color: #888888;
-          }
-        </style>
-      </head>
-      <body>
-        <div class="container">
-          <div class="header">
-            <h1>Email Confirmation</h1>
-          </div>
-          <div class="content">
-            <p>Thank you for registering. Please confirm your email by clicking on the button below:</p>
-            <a href="${url}" class="button">Confirm Email</a>
-          </div>
-          <div class="footer">
-            <p>If you did not request this email, please ignore it.</p>
-          </div>
-        </div>
-      </body>
-      </html>
-    `;
-
-    const mailOptions = {
-      from: process.env.GMAIL_USER,
-      to: email,
-      subject: 'Confirm your email',
-      html: htmlTemplate,
-    };
-
-    await transporter.sendMail(mailOptions);
+    await this.mailService.sendEmail(email, subject, text);
   }
 
   private async sendResetPasswordEmail(email: string, url: string) {
-    const transporter = nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user: process.env.GMAIL_USER,
-        pass: process.env.GMAIL_PASS,
-      },
-    });
-
+    const subject = 'Password Reset';
     const htmlTemplate = `
       <h1>Password Reset</h1>
       <p>You requested a password reset. Click the link below to reset your password:</p>
       <a href="${url}">Reset Password</a>
     `;
 
-    const mailOptions = {
-      from: process.env.GMAIL_USER,
-      to: email,
-      subject: 'Password Reset',
-      html: htmlTemplate,
-    };
-
-    await transporter.sendMail(mailOptions);
+    await this.mailService.sendEmail(email, subject, htmlTemplate);
   }
 
   async sendOtp(userId: number) {

@@ -1,4 +1,3 @@
-// src/content/content.module.ts
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ContentService } from './content.service';

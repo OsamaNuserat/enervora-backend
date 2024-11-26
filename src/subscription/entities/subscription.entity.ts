@@ -27,4 +27,13 @@ export class Subscription {
 
   @Column({ nullable: true })
   paymentHistory: string;
+
+  @Column({ nullable: true })
+  gracePeriodEndDate: Date;
+
+  @Column({ default: false })
+  autoRenewal: boolean;
+
+  @Column({ default: false })
+  notificationSent: boolean;
 }

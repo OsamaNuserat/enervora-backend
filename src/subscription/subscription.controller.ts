@@ -26,8 +26,8 @@ export class SubscriptionController {
   @Get()
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get all subscriptions' })
-  @ApiResponse({ status: 200, description: 'Subscriptions retrieved successfully' })
+  @ApiOperation({ summary: 'Get all active subscriptions' })
+  @ApiResponse({ status: 200, description: 'Active subscriptions retrieved successfully' })
   async findAll(@Req() req: RequestWithUser) {
     if (req.user.role === Role.ADMIN) {
       return this.subscriptionService.findAll();
