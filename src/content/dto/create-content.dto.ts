@@ -1,4 +1,5 @@
-import { IsString, IsBoolean, IsOptional } from 'class-validator';
+import { IsString, IsBoolean, IsOptional, IsEnum } from 'class-validator';
+import { ContentCategory } from '../enums';
 
 export class CreateContentDto {
   @IsString()
@@ -10,8 +11,8 @@ export class CreateContentDto {
   @IsString()
   mediaUrl: string;
 
-  @IsString()
-  category: string;
+  @IsEnum(ContentCategory)
+  category: ContentCategory;
 
   @IsBoolean()
   @IsOptional()

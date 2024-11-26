@@ -1,7 +1,7 @@
 import { Entity, Column, PrimaryGeneratedColumn, Index, OneToMany } from 'typeorm';
 import { Content } from '../../content/entities/content.entity';
 import { Subscription } from '../../subscription/entities/subscription.entity';
-import { ThemePreferences } from '../enum';
+import { Role, ThemePreferences } from '../enum';
 
 @Entity()
 export class User {
@@ -18,8 +18,8 @@ export class User {
   @Column()
   password: string;
 
-  @Column({ default: 'user' })
-  role: string;
+  @Column({ default: 'user'  , type: 'enum', enum: Role })
+  role: Role;
 
   @Column({ default: false })
   confirmEmail: boolean;

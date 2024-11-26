@@ -5,9 +5,9 @@ export enum ThemePreferences {
 }
 
 export enum Role {
-  User = 'user',
-  Admin = 'admin',
-  Coach = 'coach',
+  USER = 'user',
+  ADMIN = 'admin',
+  COACH = 'coach',
 }
 
 export enum UserStatus {

@@ -1,5 +1,6 @@
 import { Entity, Column, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
 import { User } from '../../auth/entities/user.entity';
+import { ContentCategory } from '../enums';
 
 @Entity()
 export class Content {
@@ -15,12 +16,15 @@ export class Content {
   @Column()
   mediaUrl: string;
 
-  @Column()
-  category: string;
+  @Column({
+    type: 'enum',
+    enum: ContentCategory,
+  })
+  category: ContentCategory;
 
   @Column({ default: false })
   isSubscriptionBased: boolean;
 
-  @ManyToOne(() => User, user => user.contents)
+  @ManyToOne(() => User, (user) => user.contents)
   user: User;
 }

@@ -8,7 +8,7 @@ import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { User } from './entities/user.entity';
-import { OtpModule } from '../otp/otp.module'; 
+import { OtpModule } from '../otp/otp.module';
 
 @Module({
   imports: [
@@ -25,10 +25,10 @@ import { OtpModule } from '../otp/otp.module';
       inject: [ConfigService],
     }),
     TypeOrmModule.forFeature([User]),
-    OtpModule, 
+    OtpModule,
   ],
   providers: [AuthService, GoogleStrategy, JwtStrategy],
   controllers: [AuthController],
-  exports: [TypeOrmModule],
+  exports: [TypeOrmModule], 
 })
 export class AuthModule {}

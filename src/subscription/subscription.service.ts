@@ -1,10 +1,11 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { DeepPartial, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import { CreateSubscriptionDto } from './dto/create-subscription.dto';
 import { UpdateSubscriptionDto } from './dto/update-subscription.dto';
 import { Subscription } from './entities/subscription.entity';
 import { User } from '../auth/entities/user.entity';
+import { Role } from 'src/auth/enum';
 
 @Injectable()
 export class SubscriptionService {
@@ -15,19 +16,27 @@ export class SubscriptionService {
     private readonly userRepository: Repository<User>,
   ) {}
 
-  async create(createSubscriptionDto: CreateSubscriptionDto) {
-    const user = await this.userRepository.findOne({ where: { id: createSubscriptionDto.userId } });
+  async create(createSubscriptionDto: CreateSubscriptionDto, userId: number) {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
     const coach = await this.userRepository.findOne({ where: { id: createSubscriptionDto.coachId } });
 
     if (!user || !coach) {
       throw new NotFoundException('User or Coach not found');
     }
 
+    if (user.role !== Role.USER) {
+      throw new BadRequestException('The user must have the role of User');
+    }
+
+    if (coach.role !== Role.COACH) {
+      throw new BadRequestException('The coach must have the role of Coach');
+    }
+
     const subscription = this.subscriptionRepository.create({
       ...createSubscriptionDto,
       user,
       coach,
-    } as DeepPartial<Subscription>);
+    });
 
     await this.subscriptionRepository.save(subscription);
     return subscription;
@@ -35,6 +44,14 @@ export class SubscriptionService {
 
   async findAll() {
     return this.subscriptionRepository.find();
+  }
+
+  async findAllByUser(userId: number) {
+    return this.subscriptionRepository.find({ where: { user: { id: userId } } });
+  }
+
+  async findAllByCoach(coachId: number) {
+    return this.subscriptionRepository.find({ where: { coach: { id: coachId } } });
   }
 
   async findOne(id: number) {

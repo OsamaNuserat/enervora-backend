@@ -127,7 +127,7 @@ export class AuthController {
 
   @Get('admin-only')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles(Role.Admin)
+  @Roles(Role.ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Admin only route' })
   @ApiResponse({ status: 200, description: 'Access granted' })
@@ -137,7 +137,7 @@ export class AuthController {
 
   @Get('coach-only')
   @UseGuards(AuthGuard('jwt'), RolesGuard)
-  @Roles(Role.Coach)
+  @Roles(Role.COACH)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Coach only route' })
   @ApiResponse({ status: 200, description: 'Access granted' })
