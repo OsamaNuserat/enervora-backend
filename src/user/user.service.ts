@@ -10,7 +10,6 @@ export class UserService {
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
-    private readonly otpService: OtpService,
   ) {}
 
   async updateProfile(userId: number, updateProfileDto: UpdateProfileDto) {
@@ -32,33 +31,5 @@ export class UserService {
     }
 
     return user;
-  }
-
-  async sendOtp(userId: number) {
-    const user = await this.userRepository.findOne({ where: { id: userId } });
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-
-    const otpSid = await this.otpService.sendOtp(user.phoneNumber);
-    return { message: 'OTP sent successfully', otpSid };
-  }
-
-  async verifyOtp(userId: number, otp: string) {
-    const user = await this.userRepository.findOne({ where: { id: userId } });
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-
-    const status = await this.otpService.verifyOtp(user.phoneNumber, otp);
-    if (status !== 'approved') {
-      throw new BadRequestException('Invalid or expired OTP');
-    }
-
-    user.otp = null;
-    user.otpExpires = null;
-    await this.userRepository.save(user);
-
-    return { message: 'Phone number verified successfully' };
   }
 }

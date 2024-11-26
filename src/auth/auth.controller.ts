@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Body, Query, UseGuards, Req, Param } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Query,
+  UseGuards,
+  Req,
+  Param,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 import { Roles } from './decorators/roles.decorator';
@@ -6,10 +15,16 @@ import { RolesGuard } from './guards/roles.guard';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 import { SignupDto } from './dto/signup.dto';
 import { SigninDto } from './dto/signin.dto';
 import { Role } from './enum';
+import { RequestWithUser } from 'src/types/request-with-user';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -52,7 +67,10 @@ export class AuthController {
   @ApiOperation({ summary: 'Reset password' })
   @ApiResponse({ status: 200, description: 'Password reset successfully' })
   @ApiResponse({ status: 400, description: 'Invalid or expired token' })
-  async resetPassword(@Query('token') token: string, @Body() resetPasswordDto: ResetPasswordDto) {
+  async resetPassword(
+    @Query('token') token: string,
+    @Body() resetPasswordDto: ResetPasswordDto,
+  ) {
     return this.authService.resetPassword(token, resetPasswordDto.newPassword);
   }
 
@@ -62,8 +80,35 @@ export class AuthController {
   @ApiOperation({ summary: 'Change password' })
   @ApiResponse({ status: 200, description: 'Password changed successfully' })
   @ApiResponse({ status: 401, description: 'Current password is incorrect' })
-  async changePassword(@Req() req, @Body() changePasswordDto: ChangePasswordDto) {
+  async changePassword(
+    @Req() req,
+    @Body() changePasswordDto: ChangePasswordDto,
+  ) {
     return this.authService.changePassword(req.user.id, changePasswordDto);
+  }
+
+  @Post('send-otp')
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Send OTP for phone number verification' })
+  @ApiResponse({ status: 200, description: 'OTP sent successfully' })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  async sendOtp(@Req() req: RequestWithUser) {
+    return this.authService.sendOtp(req.user.id);
+  }
+
+  @Post('verify-otp')
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Verify OTP for phone number' })
+  @ApiResponse({
+    status: 200,
+    description: 'Phone number verified successfully',
+  })
+  @ApiResponse({ status: 400, description: 'Invalid or expired OTP' })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  async verifyOtp(@Req() req: RequestWithUser, @Body('otp') otp: string) {
+    return this.authService.verifyOtp(req.user.id, otp);
   }
 
   @Get('google')

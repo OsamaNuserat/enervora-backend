@@ -17,6 +17,7 @@ import * as nodemailer from 'nodemailer';
 import * as crypto from 'crypto';
 import { User } from './entities/user.entity';
 import { ConfigService } from '@nestjs/config';
+import { OtpService } from 'src/otp/otp.service';
 
 @Injectable()
 export class AuthService {
@@ -25,6 +26,7 @@ export class AuthService {
     private readonly userRepository: Repository<User>,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    private readonly otpService: OtpService,
   ) {}
 
   async signup(signupDto: SignupDto) {
@@ -88,7 +90,9 @@ export class AuthService {
   }
 
   async forgotPassword(forgotPasswordDto: ForgotPasswordDto) {
-    const user = await this.userRepository.findOne({ where: { email: forgotPasswordDto.email } });
+    const user = await this.userRepository.findOne({
+      where: { email: forgotPasswordDto.email },
+    });
     if (!user) {
       throw new NotFoundException('User not found');
     }
@@ -131,7 +135,10 @@ export class AuthService {
       throw new NotFoundException('User not found');
     }
 
-    const isMatch = await bcrypt.compare(changePasswordDto.currentPassword, user.password);
+    const isMatch = await bcrypt.compare(
+      changePasswordDto.currentPassword,
+      user.password,
+    );
     if (!isMatch) {
       throw new UnauthorizedException('Current password is incorrect');
     }
@@ -249,5 +256,33 @@ export class AuthService {
     };
 
     await transporter.sendMail(mailOptions);
+  }
+
+  async sendOtp(userId: number) {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const otpSid = await this.otpService.sendOtp(user.phoneNumber);
+    return { message: 'OTP sent successfully', otpSid };
+  }
+
+  async verifyOtp(userId: number, otp: string) {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const status = await this.otpService.verifyOtp(user.phoneNumber, otp);
+    if (status !== 'approved') {
+      throw new BadRequestException('Invalid or expired OTP');
+    }
+
+    user.otp = null;
+    user.otpExpires = null;
+    await this.userRepository.save(user);
+
+    return { message: 'Phone number verified successfully' };
   }
 }
