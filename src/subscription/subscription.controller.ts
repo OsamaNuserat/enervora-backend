@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards, Req, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, UseGuards, Req, BadRequestException } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { CreateSubscriptionDto } from './dto/create-subscription.dto';
 import { SubscriptionService } from './subscription.service';
@@ -18,6 +18,7 @@ export class SubscriptionController {
   @ApiOperation({ summary: 'Create subscription' })
   @ApiResponse({ status: 201, description: 'Subscription created successfully' })
   @ApiResponse({ status: 404, description: 'User or Coach not found' })
+  @ApiResponse({ status: 400, description: 'User already has an active subscription' })
   async create(@Req() req: RequestWithUser, @Body() createSubscriptionDto: CreateSubscriptionDto) {
     return this.subscriptionService.create(createSubscriptionDto, req.user.id);
   }
@@ -57,13 +58,13 @@ export class SubscriptionController {
     return this.subscriptionService.update(+id, updateSubscriptionDto);
   }
 
-  @Delete(':id')
+  @Patch('unsubscribe/:id')
   @UseGuards(AuthGuard('jwt'))
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Delete subscription' })
-  @ApiResponse({ status: 200, description: 'Subscription deleted successfully' })
+  @ApiOperation({ summary: 'Unsubscribe' })
+  @ApiResponse({ status: 200, description: 'Unsubscribed successfully' })
   @ApiResponse({ status: 404, description: 'Subscription not found' })
-  remove(@Param('id') id: string) {
-    return this.subscriptionService.remove(+id);
+  unsubscribe(@Req() req: RequestWithUser) {
+    return this.subscriptionService.unsubscribe(req.user.id);
   }
 }

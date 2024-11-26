@@ -5,7 +5,9 @@ import { CreateSubscriptionDto } from './dto/create-subscription.dto';
 import { UpdateSubscriptionDto } from './dto/update-subscription.dto';
 import { Subscription } from './entities/subscription.entity';
 import { User } from '../auth/entities/user.entity';
+import * as moment from 'moment';
 import { Role } from 'src/auth/enum';
+import { SubscriptionType } from './enums';
 
 @Injectable()
 export class SubscriptionService {
@@ -32,13 +34,35 @@ export class SubscriptionService {
       throw new BadRequestException('The coach must have the role of Coach');
     }
 
+    // Check if the user already has an active subscription
+    const activeSubscription = await this.subscriptionRepository.findOne({ where: { user: { id: userId }, isActive: true } });
+    if (activeSubscription) {
+      throw new BadRequestException('User already has an active subscription');
+    }
+
+    let endDate: Date;
+    if (createSubscriptionDto.subscriptionType === SubscriptionType.MONTHLY) {
+      endDate = moment(createSubscriptionDto.startDate).add(1, 'month').toDate();
+    } else if (createSubscriptionDto.subscriptionType === SubscriptionType.YEARLY) {
+      endDate = moment(createSubscriptionDto.startDate).add(1, 'year').toDate();
+    } else {
+      throw new BadRequestException('Invalid subscription type');
+    }
+
     const subscription = this.subscriptionRepository.create({
       ...createSubscriptionDto,
       user,
       coach,
+      endDate,
+      isActive: true, // Set isActive to true when creating a subscription
     });
 
     await this.subscriptionRepository.save(subscription);
+
+    // Increment the subscriber count for the coach
+    coach.subscriberCount += 1;
+    await this.userRepository.save(coach);
+
     return subscription;
   }
 
@@ -73,8 +97,31 @@ export class SubscriptionService {
     return this.subscriptionRepository.save(subscription);
   }
 
-  async remove(id: number) {
-    const subscription = await this.findOne(id);
-    return this.subscriptionRepository.remove(subscription);
+  async unsubscribe(userId: number) {
+    // Check if the user has an active subscription
+    const activeSubscription = await this.subscriptionRepository.findOne({ where: { user: { id: userId }, isActive: true } });
+    if (!activeSubscription) {
+      throw new BadRequestException('User does not have an active subscription');
+    }
+
+    activeSubscription.isActive = false;
+
+    // Decrement the subscriber count for the coach
+    const coach = activeSubscription.coach;
+    coach.subscriberCount -= 1;
+    await this.userRepository.save(coach);
+
+    return this.subscriptionRepository.save(activeSubscription);
+  }
+
+  async checkSubscriptions() {
+    const subscriptions = await this.subscriptionRepository.find();
+    const now = new Date();
+    for (const subscription of subscriptions) {
+      if (subscription.endDate < now && subscription.isActive) {
+        subscription.isActive = false;
+        await this.subscriptionRepository.save(subscription);
+      }
+    }
   }
 }

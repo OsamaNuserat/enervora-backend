@@ -1,5 +1,6 @@
 import { Entity, Column, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
 import { User } from '../../auth/entities/user.entity';
+import { SubscriptionType } from '../enums';
 
 @Entity()
 export class Subscription {
@@ -15,10 +16,13 @@ export class Subscription {
   @Column()
   startDate: Date;
 
-  @Column({ nullable: true })
+  @Column()
   endDate: Date;
 
-  @Column()
+  @Column({ type: 'enum', enum: SubscriptionType })
+  subscriptionType: SubscriptionType;
+
+  @Column({ default: false })
   isActive: boolean;
 
   @Column({ nullable: true })
