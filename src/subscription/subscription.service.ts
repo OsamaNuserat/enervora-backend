@@ -34,7 +34,6 @@ export class SubscriptionService {
       throw new BadRequestException('The coach must have the role of Coach');
     }
 
-    // Check if the user already has an active subscription
     const activeSubscription = await this.subscriptionRepository.findOne({ where: { user: { id: userId }, isActive: true } });
     if (activeSubscription) {
       throw new BadRequestException('User already has an active subscription');
@@ -54,7 +53,7 @@ export class SubscriptionService {
       user,
       coach,
       endDate,
-      isActive: true, // Set isActive to true when creating a subscription
+      isActive: true, 
     });
 
     await this.subscriptionRepository.save(subscription);
@@ -79,7 +78,7 @@ export class SubscriptionService {
   }
 
   async findOne(id: number) {
-    const subscription = await this.subscriptionRepository.findOne({ where: { id } });
+    const subscription = await this.subscriptionRepository.findOne({ where: { id }, relations: ['coach'] });
     if (!subscription) {
       throw new NotFoundException(`Subscription with ID ${id} not found`);
     }
@@ -98,15 +97,13 @@ export class SubscriptionService {
   }
 
   async unsubscribe(userId: number) {
-    // Check if the user has an active subscription
-    const activeSubscription = await this.subscriptionRepository.findOne({ where: { user: { id: userId }, isActive: true } });
+    const activeSubscription = await this.subscriptionRepository.findOne({ where: { user: { id: userId }, isActive: true }, relations: ['coach'] });
     if (!activeSubscription) {
       throw new BadRequestException('User does not have an active subscription');
     }
 
     activeSubscription.isActive = false;
 
-    // Decrement the subscriber count for the coach
     const coach = activeSubscription.coach;
     coach.subscriberCount -= 1;
     await this.userRepository.save(coach);
