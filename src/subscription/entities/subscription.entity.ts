@@ -1,5 +1,6 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, OneToMany } from 'typeorm';
 import { User } from '../../auth/entities/user.entity';
+import { Payment } from '../../payment/entities/payment.entity';
 import { SubscriptionType } from '../enums';
 
 @Entity()
@@ -26,9 +27,6 @@ export class Subscription {
   isActive: boolean;
 
   @Column({ nullable: true })
-  paymentHistory: string;
-
-  @Column({ nullable: true })
   gracePeriodEndDate: Date;
 
   @Column({ default: false })
@@ -36,4 +34,7 @@ export class Subscription {
 
   @Column({ default: false })
   notificationSent: boolean;
+
+  @OneToMany(() => Payment, payment => payment.subscription)
+  payments: Payment[];
 }

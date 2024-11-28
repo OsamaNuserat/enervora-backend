@@ -1,7 +1,14 @@
-import { Entity, Column, PrimaryGeneratedColumn, Index, OneToMany } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  Index,
+  OneToMany,
+} from 'typeorm';
 import { Content } from '../../content/entities/content.entity';
 import { Subscription } from '../../subscription/entities/subscription.entity';
 import { Role, ThemePreferences } from '../enum';
+import { Payment } from 'src/payment/entities/payment.entity';
 
 @Entity()
 export class User {
@@ -42,7 +49,11 @@ export class User {
   @Column({ nullable: true })
   bio: string;
 
-  @Column({ type: 'enum', enum: ThemePreferences, default: ThemePreferences.SYSTEM })
+  @Column({
+    type: 'enum',
+    enum: ThemePreferences,
+    default: ThemePreferences.SYSTEM,
+  })
   preferences: ThemePreferences;
 
   @Column({ nullable: true })
@@ -75,12 +86,15 @@ export class User {
   @Column({ nullable: true })
   city: string;
 
-  @OneToMany(() => Content, content => content.user)
+  @OneToMany(() => Content, (content) => content.user)
   contents: Content[];
 
-  @OneToMany(() => Subscription, subscription => subscription.user)
+  @OneToMany(() => Subscription, (subscription) => subscription.user)
   subscriptions: Subscription[];
 
-  @OneToMany(() => Subscription, subscription => subscription.coach)
+  @OneToMany(() => Subscription, (subscription) => subscription.coach)
   subscribers: Subscription[];
+
+  @OneToMany(() => Payment, (payment) => payment.user)
+  payments: Payment[];
 }

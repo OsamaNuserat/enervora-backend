@@ -13,6 +13,8 @@ import { Role } from 'src/auth/enum';
 import { SubscriptionType } from './enums';
 import * as moment from 'moment';
 import { MailService } from 'src/mail/mail.service';
+import { PaymentService } from 'src/payment/payment.service';
+import { CreatePaymentDto } from 'src/payment/dto/create-payment.dto';
 
 @Injectable()
 export class SubscriptionService {
@@ -22,6 +24,8 @@ export class SubscriptionService {
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     private readonly mailService: MailService,
+    private readonly paymentService: PaymentService,
+
   ) {}
 
   async create(createSubscriptionDto: CreateSubscriptionDto, userId: number) {
@@ -139,6 +143,7 @@ export class SubscriptionService {
     return this.subscriptionRepository.save(activeSubscription);
   }
 
+
   async checkSubscriptions() {
     const subscriptions = await this.subscriptionRepository.find();
     const now = new Date();
@@ -148,15 +153,11 @@ export class SubscriptionService {
           let newEndDate: Date;
           if (subscription.subscriptionType === SubscriptionType.MONTHLY) {
             newEndDate = moment(subscription.endDate).add(1, 'month').toDate();
-          } else if (
-            subscription.subscriptionType === SubscriptionType.YEARLY
-          ) {
+          } else if (subscription.subscriptionType === SubscriptionType.YEARLY) {
             newEndDate = moment(subscription.endDate).add(1, 'year').toDate();
           }
           subscription.endDate = newEndDate;
-          subscription.gracePeriodEndDate = moment(newEndDate)
-            .add(7, 'days')
-            .toDate();
+          subscription.gracePeriodEndDate = moment(newEndDate).add(7, 'days').toDate();
         } else if (subscription.gracePeriodEndDate < now) {
           subscription.isActive = false;
         }
@@ -165,21 +166,19 @@ export class SubscriptionService {
     }
   }
 
-  async sendNotifications() {
-    const subscriptions = await this.subscriptionRepository.find();
-    const now = new Date();
-    for (const subscription of subscriptions) {
-      if (subscription.endDate < now && !subscription.notificationSent) {
-        // Send notification to the user
-        const user = subscription.user;
-        const subject = 'Subscription Expiry Notification';
-        const text = `Dear ${user.username}, your subscription will expire soon. Please renew your subscription to continue enjoying our services.`;
-
-        await this.mailService.sendEmail(user.email, subject, text);
-
-        subscription.notificationSent = true;
-        await this.subscriptionRepository.save(subscription);
-      }
+  async createPayment(createPaymentDto: CreatePaymentDto, userId: number) {
+    const subscription = await this.subscriptionRepository.findOne({
+      where: { id: createPaymentDto.subscriptionId },
+      relations: ['payments'],
+    });
+    if (!subscription) {
+      throw new NotFoundException('Subscription not found');
     }
+
+    const payment = await this.paymentService.create(createPaymentDto, userId);
+    subscription.payments.push(payment);
+    await this.subscriptionRepository.save(subscription);
+
+    return payment;
   }
 }
