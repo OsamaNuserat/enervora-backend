@@ -5,6 +5,7 @@ import { Payment } from './entities/payment.entity';
 import { CreatePaymentDto } from './dto/create-payment.dto';
 import { v4 as uuidv4 } from 'uuid';
 import { User } from '../auth/entities/user.entity';
+import { Subscription } from '../subscription/entities/subscription.entity';
 
 @Injectable()
 export class PaymentService {
@@ -13,6 +14,8 @@ export class PaymentService {
     private readonly paymentRepository: Repository<Payment>,
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
+    @InjectRepository(Subscription)
+    private readonly subscriptionRepository: Repository<Subscription>,
   ) {}
 
   async create(createPaymentDto: CreatePaymentDto, userId: number) {
@@ -23,6 +26,11 @@ export class PaymentService {
     const user = await this.userRepository.findOne({ where: { id: userId } });
     if (!user) {
       throw new NotFoundException('User not found');
+    }
+
+    const subscription = await this.subscriptionRepository.findOne({ where: { id: createPaymentDto.subscriptionId } });
+    if (!subscription) {
+      throw new NotFoundException('Subscription not found');
     }
 
     const MAX_RETRIES = 5;
@@ -36,6 +44,7 @@ export class PaymentService {
           ...createPaymentDto,
           transactionId,
           user,
+          subscription,
         });
         return await this.paymentRepository.save(payment);
       } catch (error) {

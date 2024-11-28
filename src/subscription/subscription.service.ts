@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CreateSubscriptionDto } from './dto/create-subscription.dto';
@@ -11,9 +7,9 @@ import { Subscription } from './entities/subscription.entity';
 import { User } from '../auth/entities/user.entity';
 import { Role } from 'src/auth/enum';
 import { SubscriptionType } from './enums';
+import { MailService } from '../mail/mail.service';
+import { PaymentService } from '../payment/payment.service';
 import * as moment from 'moment';
-import { MailService } from 'src/mail/mail.service';
-import { PaymentService } from 'src/payment/payment.service';
 import { CreatePaymentDto } from 'src/payment/dto/create-payment.dto';
 
 @Injectable()
@@ -25,14 +21,11 @@ export class SubscriptionService {
     private readonly userRepository: Repository<User>,
     private readonly mailService: MailService,
     private readonly paymentService: PaymentService,
-
   ) {}
 
   async create(createSubscriptionDto: CreateSubscriptionDto, userId: number) {
     const user = await this.userRepository.findOne({ where: { id: userId } });
-    const coach = await this.userRepository.findOne({
-      where: { id: createSubscriptionDto.coachId },
-    });
+    const coach = await this.userRepository.findOne({ where: { id: createSubscriptionDto.coachId } });
 
     if (!user || !coach) {
       throw new NotFoundException('User or Coach not found');
@@ -46,27 +39,22 @@ export class SubscriptionService {
       throw new BadRequestException('The coach must have the role of Coach');
     }
 
-    const activeSubscription = await this.subscriptionRepository.findOne({
-      where: { user: { id: userId }, isActive: true },
-    });
+    // Check if the user already has an active subscription
+    const activeSubscription = await this.subscriptionRepository.findOne({ where: { user: { id: userId }, isActive: true } });
     if (activeSubscription) {
       throw new BadRequestException('User already has an active subscription');
     }
 
     let endDate: Date;
     if (createSubscriptionDto.subscriptionType === SubscriptionType.MONTHLY) {
-      endDate = moment(createSubscriptionDto.startDate)
-        .add(1, 'month')
-        .toDate();
-    } else if (
-      createSubscriptionDto.subscriptionType === SubscriptionType.YEARLY
-    ) {
+      endDate = moment(createSubscriptionDto.startDate).add(1, 'month').toDate();
+    } else if (createSubscriptionDto.subscriptionType === SubscriptionType.YEARLY) {
       endDate = moment(createSubscriptionDto.startDate).add(1, 'year').toDate();
     } else {
       throw new BadRequestException('Invalid subscription type');
     }
 
-    const gracePeriodEndDate = moment(endDate).add(7, 'days').toDate();
+    const gracePeriodEndDate = moment(endDate).add(7, 'days').toDate(); // Add a 7-day grace period
 
     const subscription = this.subscriptionRepository.create({
       ...createSubscriptionDto,
@@ -74,13 +62,13 @@ export class SubscriptionService {
       coach,
       endDate,
       gracePeriodEndDate,
-      isActive: true,
+      isActive: true, // Set isActive to true when creating a subscription
     });
 
     await this.subscriptionRepository.save(subscription);
 
-    coach.subscriberCount += 1;
-    await this.userRepository.save(coach);
+    // Update the subscriber count for the coach
+    await this.updateSubscriberCount(coach.id);
 
     return subscription;
   }
@@ -90,22 +78,15 @@ export class SubscriptionService {
   }
 
   async findAllByUser(userId: number) {
-    return this.subscriptionRepository.find({
-      where: { user: { id: userId }, isActive: true },
-    });
+    return this.subscriptionRepository.find({ where: { user: { id: userId }, isActive: true } });
   }
 
   async findAllByCoach(coachId: number) {
-    return this.subscriptionRepository.find({
-      where: { coach: { id: coachId }, isActive: true },
-    });
+    return this.subscriptionRepository.find({ where: { coach: { id: coachId }, isActive: true } });
   }
 
   async findOne(id: number) {
-    const subscription = await this.subscriptionRepository.findOne({
-      where: { id },
-      relations: ['coach'],
-    });
+    const subscription = await this.subscriptionRepository.findOne({ where: { id }, relations: ['coach'] });
     if (!subscription) {
       throw new NotFoundException(`Subscription with ID ${id} not found`);
     }
@@ -124,25 +105,19 @@ export class SubscriptionService {
   }
 
   async unsubscribe(userId: number) {
-    const activeSubscription = await this.subscriptionRepository.findOne({
-      where: { user: { id: userId }, isActive: true },
-      relations: ['coach'],
-    });
+    const activeSubscription = await this.subscriptionRepository.findOne({ where: { user: { id: userId }, isActive: true }, relations: ['coach'] });
     if (!activeSubscription) {
-      throw new BadRequestException(
-        'User does not have an active subscription',
-      );
+      throw new BadRequestException('User does not have an active subscription');
     }
 
     activeSubscription.isActive = false;
+    await this.subscriptionRepository.save(activeSubscription);
 
-    const coach = activeSubscription.coach;
-    coach.subscriberCount -= 1;
-    await this.userRepository.save(coach);
+    // Update the subscriber count for the coach
+    await this.updateSubscriberCount(activeSubscription.coach.id);
 
-    return this.subscriptionRepository.save(activeSubscription);
+    return activeSubscription;
   }
-
 
   async checkSubscriptions() {
     const subscriptions = await this.subscriptionRepository.find();
@@ -180,5 +155,31 @@ export class SubscriptionService {
     await this.subscriptionRepository.save(subscription);
 
     return payment;
+  }
+
+  private async updateSubscriberCount(coachId: number) {
+    const subscriberCount = await this.subscriptionRepository.count({
+      where: { coach: { id: coachId }, isActive: true },
+    });
+
+    await this.userRepository.update(coachId, { subscriberCount });
+  }
+
+  async sendNotifications() {
+    const subscriptions = await this.subscriptionRepository.find();
+    const now = new Date();
+    for (const subscription of subscriptions) {
+      if (subscription.endDate < now && !subscription.notificationSent) {
+        // Send notification to the user
+        const user = subscription.user;
+        const subject = 'Subscription Expiry Notification';
+        const text = `Dear ${user.username}, your subscription will expire soon. Please renew your subscription to continue enjoying our services.`;
+
+        await this.mailService.sendEmail(user.email, subject, text);
+
+        subscription.notificationSent = true;
+        await this.subscriptionRepository.save(subscription);
+      }
+    }
   }
 }
