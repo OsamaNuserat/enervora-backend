@@ -1,6 +1,6 @@
 import { IsOptional, IsString, IsEmail, IsEnum } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { ThemePreferences } from 'src/auth/enum';
+import { ThemePreferences, Category, Specialties } from 'src/auth/enum';
 
 export class UpdateProfileDto {
   @ApiProperty({ example: 'john_doe', required: false })
@@ -38,8 +38,27 @@ export class UpdateProfileDto {
   @IsString()
   phoneNumber?: string;
 
-  @ApiProperty({ example: 'Active', required: false })
+  @ApiProperty({ example: 'USA', required: false })
   @IsOptional()
   @IsString()
-  status?: string;
+  country?: string;
+
+  @ApiProperty({ example: 'New York', required: false })
+  @IsOptional()
+  @IsString()
+  city?: string;
+
+  @ApiProperty({ example: Category.FITNESS, required: false, enum: Category })
+  @IsOptional()
+  @IsEnum(Category)
+  category?: Category;
+
+  @ApiProperty({ example: [Specialties.WEIGHTLIFTING, Specialties.CARDIO], required: false, enum: Specialties, isArray: true })
+  @IsOptional()
+  @IsEnum(Specialties, { each: true })
+  specialties?: Specialties[];
+
+  @ApiProperty({ example: true, required: false })
+  @IsOptional()
+  availability?: boolean;
 }

@@ -19,6 +19,7 @@ import { User } from './entities/user.entity';
 import { ConfigService } from '@nestjs/config';
 import { OtpService } from 'src/otp/otp.service';
 import { MailService } from 'src/mail/mail.service';
+import { Role, Specialties } from './enum';
 
 @Injectable()
 export class AuthService {
@@ -42,11 +43,15 @@ export class AuthService {
       throw new Error('Passwords do not match');
     }
     const hashedPassword = await bcrypt.hash(signupDto.password, 10);
+
     const user = this.userRepository.create({
       ...signupDto,
       password: hashedPassword,
       confirmEmail: false,
+      role: signupDto.role || Role.USER,
+      specialties: signupDto.specialties ? signupDto.specialties.map(specialty => Specialties[specialty]) : [],
     });
+
     await this.userRepository.save(user);
 
     const token = this.jwtService.sign({ email: user.email });

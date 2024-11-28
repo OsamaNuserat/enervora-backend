@@ -7,7 +7,7 @@ import {
 } from 'typeorm';
 import { Content } from '../../content/entities/content.entity';
 import { Subscription } from '../../subscription/entities/subscription.entity';
-import { Role, ThemePreferences } from '../enum';
+import { Role, ThemePreferences, Category, Specialties } from '../enum';
 import { Payment } from 'src/payment/entities/payment.entity';
 import { Review } from 'src/review/entities/review.entity';
 
@@ -86,6 +86,15 @@ export class User {
 
   @Column({ nullable: true })
   city: string;
+
+  @Column({ type: 'enum', enum: Category, nullable: true })
+  category: Category;
+
+  @Column({ type: 'simple-array', nullable: true })
+  specialties: Specialties[];
+
+  @Column({ default: true })
+  availability: boolean;
 
   @OneToMany(() => Content, (content) => content.user)
   contents: Content[];

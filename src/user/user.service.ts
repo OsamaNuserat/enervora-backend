@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { User } from '../auth/entities/user.entity';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { OtpService } from '../otp/otp.service';
+import { SearchCoachDto } from './dto/search-coach.dto';
 
 @Injectable()
 export class UserService {
@@ -31,5 +32,30 @@ export class UserService {
     }
 
     return user;
+  }
+
+  async searchCoaches(searchCoachDto: SearchCoachDto): Promise<User[]> {
+    const query = this.userRepository.createQueryBuilder('user')
+      .where('user.role = :role', { role: 'COACH' });
+
+    if (searchCoachDto.category) {
+      query.andWhere('user.category = :category', { category: searchCoachDto.category });
+    }
+
+    if (searchCoachDto.specialties) {
+      query.andWhere('user.specialties LIKE :specialties', { specialties: `%${searchCoachDto.specialties}%` });
+    }
+
+    if (searchCoachDto.availability !== undefined) {
+      query.andWhere('user.availability = :availability', { availability: searchCoachDto.availability });
+    }
+
+    if (searchCoachDto.minRating) {
+      query.leftJoinAndSelect('user.coachReviews', 'review')
+        .groupBy('user.id')
+        .having('AVG(review.rating) >= :minRating', { minRating: searchCoachDto.minRating });
+    }
+
+    return query.getMany();
   }
 }

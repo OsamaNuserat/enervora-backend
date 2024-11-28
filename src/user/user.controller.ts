@@ -7,6 +7,7 @@ import {
   Req,
   UploadedFiles,
   UseInterceptors,
+  Query,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { FileFieldsInterceptor } from '@nestjs/platform-express';
@@ -21,6 +22,7 @@ import {
 import { RequestWithUser } from '../types/request-with-user';
 import { diskStorage } from 'multer';
 import { extname } from 'path';
+import { SearchCoachDto } from './dto/search-coach.dto';
 
 @ApiTags('user')
 @Controller('user')
@@ -97,5 +99,12 @@ export class UserController {
   @ApiResponse({ status: 404, description: 'User not found' })
   async getProfile(@Req() req: RequestWithUser) {
     return this.userService.getProfile(req.user.id);
+  }
+
+  @Get('search-coaches')
+  @ApiOperation({ summary: 'Search coaches based on criteria' })
+  @ApiResponse({ status: 200, description: 'Coaches retrieved successfully' })
+  async searchCoaches(@Query() searchCoachDto: SearchCoachDto) {
+    return this.userService.searchCoaches(searchCoachDto);
   }
 }
