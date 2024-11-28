@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Review } from './entities/review.entity';
 import { CreateReviewDto } from './dto/create-review.dto';
 import { User } from '../auth/entities/user.entity';
+import { Role } from '../auth/enum';
 
 @Injectable()
 export class ReviewService {
@@ -22,8 +23,13 @@ export class ReviewService {
       throw new NotFoundException('User or Coach not found');
     }
 
+    // Check if the user is trying to review themselves
     if (userId === createReviewDto.coachId) {
       throw new BadRequestException('You cannot review yourself');
+    }
+
+    if (coach.role !== Role.COACH) {
+      throw new BadRequestException('You can only review users with the role of COACH');
     }
 
     const existingReview = await this.reviewRepository.findOne({
