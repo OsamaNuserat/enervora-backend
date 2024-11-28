@@ -9,6 +9,7 @@ import { Content } from '../../content/entities/content.entity';
 import { Subscription } from '../../subscription/entities/subscription.entity';
 import { Role, ThemePreferences } from '../enum';
 import { Payment } from 'src/payment/entities/payment.entity';
+import { Review } from 'src/review/entities/review.entity';
 
 @Entity()
 export class User {
@@ -97,4 +98,10 @@ export class User {
 
   @OneToMany(() => Payment, (payment) => payment.user)
   payments: Payment[];
+
+  @OneToMany(() => Review, review => review.user)
+  reviews: Review[];
+
+  @OneToMany(() => Review, review => review.coach)
+  coachReviews: Review[];
 }
