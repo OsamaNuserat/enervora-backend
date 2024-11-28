@@ -14,10 +14,10 @@ export class Subscription {
   @ManyToOne(() => User, user => user.subscribers)
   coach: User;
 
-  @Column()
+  @Column({ nullable: true }) 
   startDate: Date;
 
-  @Column()
+  @Column({ nullable: true })
   endDate: Date;
 
   @Column({ type: 'enum', enum: SubscriptionType })
@@ -35,6 +35,6 @@ export class Subscription {
   @Column({ default: false })
   notificationSent: boolean;
 
-  @OneToMany(() => Payment, payment => payment.subscription)
+  @OneToMany(() => Payment, payment => payment.subscription, { cascade: true })
   payments: Payment[];
 }

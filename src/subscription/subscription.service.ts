@@ -39,37 +39,24 @@ export class SubscriptionService {
       throw new BadRequestException('The coach must have the role of Coach');
     }
 
-    // Check if the user already has an active subscription
-    const activeSubscription = await this.subscriptionRepository.findOne({ where: { user: { id: userId }, isActive: true } });
-    if (activeSubscription) {
-      throw new BadRequestException('User already has an active subscription');
+    const activeSubscription = await this.subscriptionRepository.findOne({
+      where: { user: { id: userId }, coach: { id: createSubscriptionDto.coachId }, isActive: true },
+    });
+    if (activeSubscription && activeSubscription.endDate > new Date()) {
+      throw new BadRequestException('User already has an active subscription with this coach');
     }
-
-    let endDate: Date;
-    if (createSubscriptionDto.subscriptionType === SubscriptionType.MONTHLY) {
-      endDate = moment(createSubscriptionDto.startDate).add(1, 'month').toDate();
-    } else if (createSubscriptionDto.subscriptionType === SubscriptionType.YEARLY) {
-      endDate = moment(createSubscriptionDto.startDate).add(1, 'year').toDate();
-    } else {
-      throw new BadRequestException('Invalid subscription type');
-    }
-
-    const gracePeriodEndDate = moment(endDate).add(7, 'days').toDate(); // Add a 7-day grace period
 
     const subscription = this.subscriptionRepository.create({
       ...createSubscriptionDto,
       user,
       coach,
-      endDate,
-      gracePeriodEndDate,
-      isActive: true, // Set isActive to true when creating a subscription
+      isActive: false,
     });
-
+  
     await this.subscriptionRepository.save(subscription);
-
-    // Update the subscriber count for the coach
+  
     await this.updateSubscriberCount(coach.id);
-
+  
     return subscription;
   }
 

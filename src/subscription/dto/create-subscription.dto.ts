@@ -1,12 +1,7 @@
-import { IsDate, IsOptional, IsString, IsNumber, IsEnum, IsBoolean } from 'class-validator';
-import { Type } from 'class-transformer';
+import { IsEnum, IsString, IsNumber, IsBoolean, IsOptional } from 'class-validator';
 import { SubscriptionType } from '../enums';
 
 export class CreateSubscriptionDto {
-  @IsDate()
-  @Type(() => Date)
-  startDate: Date;
-
   @IsEnum(SubscriptionType)
   subscriptionType: SubscriptionType;
 

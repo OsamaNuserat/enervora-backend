@@ -18,7 +18,7 @@ export class SubscriptionController {
   @ApiOperation({ summary: 'Create subscription' })
   @ApiResponse({ status: 201, description: 'Subscription created successfully' })
   @ApiResponse({ status: 404, description: 'User or Coach not found' })
-  @ApiResponse({ status: 400, description: 'User already has an active subscription' })
+  @ApiResponse({ status: 400, description: 'User already has an active subscription with this coach' })
   async create(@Req() req: RequestWithUser, @Body() createSubscriptionDto: CreateSubscriptionDto) {
     return this.subscriptionService.create(createSubscriptionDto, req.user.id);
   }
