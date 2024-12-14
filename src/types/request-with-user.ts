@@ -3,4 +3,7 @@ export interface RequestWithUser {
     id: number;
     role: string; 
   };
+  cookies: {
+    [key:string]: string;
+  }
 }

@@ -7,7 +7,7 @@ import {
   Query,
   UseGuards,
   Req,
-  Param,
+  Res,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
@@ -45,7 +45,23 @@ export class AuthController {
   @ApiResponse({ status: 200, description: 'User signed in successfully' })
   @ApiResponse({ status: 401, description: 'Invalid credentials' })
   async signin(@Body() signinDto: SigninDto) {
-    return this.authService.signin(signinDto);
+    const { accessToken, refreshToken } = await this.authService.signin(signinDto);
+
+    return {
+      accessToken,
+      refreshToken,
+    };
+  }
+
+  @Post('refresh-token')
+  @ApiOperation({ summary: 'Refresh access token' })
+  @ApiResponse({ status: 200, description: 'Access token refreshed successfully' })
+  @ApiResponse({ status: 401, description: 'Invalid refresh token' })
+  async refreshToken(@Req() req: RequestWithUser) {
+    const refreshToken = req.cookies['refreshToken'];
+    const { accessToken } = await this.authService.refreshToken(refreshToken);
+
+    return accessToken;
   }
 
   @Get('confirm-email')
@@ -123,7 +139,7 @@ export class AuthController {
   @UseGuards(AuthGuard('google'))
   @ApiOperation({ summary: 'Google authentication callback' })
   async googleAuthRedirect(@Req() req) {
-    return this.authService.signin(req.user);
+    return this.authService.googleSignin(req.user);
   }
 
   @Get('admin-only')

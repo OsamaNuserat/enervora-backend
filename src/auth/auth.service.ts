@@ -13,13 +13,13 @@ import { SigninDto } from './dto/signin.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import * as bcrypt from 'bcrypt';
-import * as nodemailer from 'nodemailer';
 import * as crypto from 'crypto';
 import { User } from './entities/user.entity';
 import { ConfigService } from '@nestjs/config';
 import { OtpService } from 'src/otp/otp.service';
 import { MailService } from 'src/mail/mail.service';
 import { Role, Specialties } from './enum';
+import { GoogleUser } from './types';
 
 @Injectable()
 export class AuthService {
@@ -48,7 +48,7 @@ export class AuthService {
       ...signupDto,
       password: hashedPassword,
       confirmEmail: false,
-      role: signupDto.role || Role.USER,
+      role: signupDto.role || Role.USER, // Set default role to USER if not specified
       specialties: signupDto.specialties ? signupDto.specialties.map(specialty => Specialties[specialty]) : [],
     });
 
@@ -67,21 +67,50 @@ export class AuthService {
   }
 
   async signin(signinDto: SigninDto) {
-    const user = await this.userRepository.findOne({
-      where: { email: signinDto.email },
-    });
+    const user = await this.userRepository.findOne({ where: { email: signinDto.email } });
     if (!user || !(await bcrypt.compare(signinDto.password, user.password))) {
       throw new UnauthorizedException('Invalid credentials');
     }
+
     if (!user.confirmEmail) {
-      throw new UnauthorizedException(
-        'Please confirm your email before signing in.',
-      );
+      throw new BadRequestException('Email not confirmed. Please check your email to confirm your account.');
     }
-    const payload = { username: user.username, sub: user.id };
-    return {
-      access_token: this.jwtService.sign(payload),
-    };
+
+    const accessToken = this.jwtService.sign({ userId: user.id, email: user.email }, { expiresIn: '15m' });
+    const refreshToken = this.jwtService.sign({ userId: user.id, email: user.email }, { expiresIn: '7d' });
+
+    return { accessToken, refreshToken };
+  }
+
+  async googleSignin(user: GoogleUser) {
+    let existingUser = await this.userRepository.findOne({ where: { email: user.email } });
+
+    if (!existingUser) {
+      const username = user.lastName ? `${user.firstName} ${user.lastName}` : user.firstName;
+      existingUser = this.userRepository.create({
+        email: user.email,
+        username: username,
+        profilePicture: user.picture,
+        confirmEmail: true,
+        role: Role.USER, 
+      });
+      await this.userRepository.save(existingUser);
+    }
+
+    const accessToken = this.jwtService.sign({ userId: existingUser.id, email: existingUser.email }, { expiresIn: '15m' });
+    const refreshToken = this.jwtService.sign({ userId: existingUser.id, email: existingUser.email }, { expiresIn: '7d' });
+
+    return { accessToken, refreshToken };
+  }
+
+  async refreshToken(refreshToken: string) {
+    try {
+      const payload = this.jwtService.verify(refreshToken, { secret: this.configService.get<string>('JWT_SECRET') });
+      const accessToken = this.jwtService.sign({ userId: payload.userId, email: payload.email }, { expiresIn: '15m' });
+      return { accessToken };
+    } catch (e) {
+      throw new UnauthorizedException('Invalid refresh token');
+    }
   }
 
   async confirmEmail(token: string) {
