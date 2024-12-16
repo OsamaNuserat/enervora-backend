@@ -18,8 +18,11 @@ import { User } from './entities/user.entity';
 import { ConfigService } from '@nestjs/config';
 import { OtpService } from 'src/otp/otp.service';
 import { MailService } from 'src/mail/mail.service';
-import { Role, Specialties } from './enum';
+import { Role, Specialties, UserStatus } from './enum';
 import { GoogleUser } from './types';
+import { RequestSuspensionReviewDto } from './dto/request-suspension-review.dto';
+import * as ejs from 'ejs';
+import * as path from 'path';
 
 @Injectable()
 export class AuthService {
@@ -71,7 +74,9 @@ export class AuthService {
     if (!user || !(await bcrypt.compare(signinDto.password, user.password))) {
       throw new UnauthorizedException('Invalid credentials');
     }
-
+    if (user.status === UserStatus.SUSPENDED) {
+      throw new UnauthorizedException('Your account has been suspended due to a policy violation. Please contact support for more information.');
+    }
     if (!user.confirmEmail) {
       throw new BadRequestException('Email not confirmed. Please check your email to confirm your account.');
     }
@@ -84,7 +89,7 @@ export class AuthService {
 
   async googleSignin(user: GoogleUser) {
     let existingUser = await this.userRepository.findOne({ where: { email: user.email } });
-
+   
     if (!existingUser) {
       const username = user.lastName ? `${user.firstName} ${user.lastName}` : user.firstName;
       existingUser = this.userRepository.create({
@@ -184,22 +189,40 @@ export class AuthService {
     return { message: 'Password changed successfully' };
   }
 
-  async sendConfirmationEmail(email: string, token: string) {
+  async sendConfirmationEmail(email: string, confirmationUrl: string) {
     const subject = 'Email Confirmation';
-    const text = `Please confirm your email by clicking on the following link: ${token}`;
+    const templatePath = path.join(process.cwd(), 'src/mail/templates/confirm-email.ejs');
+    const html = await ejs.renderFile(templatePath, { confirmationUrl });
 
-    await this.mailService.sendEmail(email, subject, text);
+    await this.mailService.sendEmail(email, subject, html);
   }
 
-  private async sendResetPasswordEmail(email: string, url: string) {
+  private async sendResetPasswordEmail(email: string, resetUrl: string) {
     const subject = 'Password Reset';
-    const htmlTemplate = `
-      <h1>Password Reset</h1>
-      <p>You requested a password reset. Click the link below to reset your password:</p>
-      <a href="${url}">Reset Password</a>
-    `;
+    const templatePath = path.join(process.cwd(), 'src/mail/templates/reset-password.ejs');
+    const html = await ejs.renderFile(templatePath, { resetUrl });
 
-    await this.mailService.sendEmail(email, subject, htmlTemplate);
+    await this.mailService.sendEmail(email, subject, html);
+  }
+
+  async requestSuspensionReview(userId: number, requestSuspensionReviewDto: RequestSuspensionReviewDto) {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    if (user.status !== UserStatus.SUSPENDED) {
+      throw new BadRequestException('User is not suspended');
+    }
+
+    const supportEmail = this.configService.get<string>('SUPPORT_EMAIL');
+    const subject = 'Suspension Review Request';
+    const templatePath = path.join(process.cwd(), 'src/mail/templates/request-suspension-review.ejs');
+    const html = await ejs.renderFile(templatePath, { userEmail: user.email, reason: requestSuspensionReviewDto.reason });
+
+    await this.mailService.sendEmail(supportEmail, subject, html);
+
+    return { message: 'Suspension review request sent successfully' };
   }
 
   async sendOtp(userId: number) {

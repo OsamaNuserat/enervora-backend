@@ -26,6 +26,7 @@ import { SignupDto } from './dto/signup.dto';
 import { SigninDto } from './dto/signin.dto';
 import { Role } from './enum';
 import { RequestWithUser } from 'src/types/request-with-user';
+import { RequestSuspensionReviewDto } from './dto/request-suspension-review.dto';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -51,6 +52,20 @@ export class AuthController {
       accessToken,
       refreshToken,
     };
+  }
+
+  @Post('request-suspension-review')
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Request suspension review' })
+  @ApiResponse({ status: 200, description: 'Suspension review request sent successfully' })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  @ApiResponse({ status: 400, description: 'User is not suspended' })
+  async requestSuspensionReview(
+    @Req() req: RequestWithUser,
+    @Body() requestSuspensionReviewDto: RequestSuspensionReviewDto,
+  ) {
+    return this.authService.requestSuspensionReview(req.user.id, requestSuspensionReviewDto);
   }
 
   @Post('refresh-token')

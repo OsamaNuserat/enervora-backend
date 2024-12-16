@@ -15,10 +15,10 @@
     "strictNullChecks": false,
     "noImplicitAny": false,
     "strictBindCallApply": false,
-    "forceConsistentCasingInFileNames": false,
+    "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": false,
     "types": ["node"]
   },
-  "include": ["src/**/*.ts"],
+  "include": ["src/**/*.ts", "src/mail/templates/**/*.ejs"],
   "exclude": ["node_modules", "dist"]
 }
