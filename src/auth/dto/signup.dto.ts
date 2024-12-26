@@ -1,6 +1,5 @@
-// src/auth/dto/signup.dto.ts
 import { IsEmail, IsNotEmpty, IsOptional, IsEnum, IsString, MinLength } from 'class-validator';
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { PasswordValidation } from '../decorators/password.decorator';
 import { ThemePreferences, Category, Specialties, Role } from '../enum';
 
@@ -23,56 +22,56 @@ export class SignupDto {
   @PasswordValidation()
   confirmPassword: string;
 
-  @ApiProperty({ example: 'https://example.com/profile.jpg' })
+  @ApiPropertyOptional({ example: 'https://example.com/profile.jpg' })
   @IsOptional()
   @IsString()
   profilePicture?: string;
 
-  @ApiProperty({ example: 'https://example.com/banner.jpg' })
+  @ApiPropertyOptional({ example: 'https://example.com/banner.jpg' })
   @IsOptional()
   @IsString()
   bannerPicture?: string;
 
-  @ApiProperty({ example: 'This is my bio' })
+  @ApiPropertyOptional({ example: 'This is my bio' })
   @IsOptional()
   @IsString()
   bio?: string;
 
-  @ApiProperty({ example: ThemePreferences.DARK, required: false, enum: ThemePreferences })
+  @ApiPropertyOptional({ example: ThemePreferences.DARK, required: false, enum: ThemePreferences })
   @IsOptional()
   @IsEnum(ThemePreferences)
   preferences?: ThemePreferences;
 
-  @ApiProperty({ example: '123-456-7890', required: false })
+  @ApiProperty({ example: '+962785422273' })
   @IsOptional()
   @IsString()
-  phoneNumber?: string;
+  phoneNumber: string;
 
-  @ApiProperty({ example: 'USA', required: false })
+  @ApiProperty({ example: 'Jordan' })
   @IsOptional()
   @IsString()
-  country?: string;
+  country: string;
 
-  @ApiProperty({ example: 'New York', required: false })
+  @ApiProperty({ example: 'New York' })
   @IsOptional()
   @IsString()
-  city?: string;
+  city: string;
 
-  @ApiProperty({ example: Category.FITNESS, required: false, enum: Category })
+  @ApiProperty({ example: Category.FITNESS, enum: Category })
   @IsOptional()
   @IsEnum(Category)
-  category?: Category;
+  category: Category;
 
-  @ApiProperty({ example: [Specialties.WEIGHTLIFTING, Specialties.CARDIO], required: false, enum: Specialties, isArray: true })
+  @ApiProperty({ example: [Specialties.WEIGHTLIFTING, Specialties.CARDIO], enum: Specialties, isArray: true })
   @IsOptional()
   @IsEnum(Specialties, { each: true })
-  specialties?: Specialties[];
+  specialties: Specialties[];
 
-  @ApiProperty({ example: true, required: false })
+  @ApiPropertyOptional({ example: true, required: false })
   @IsOptional()
   availability?: boolean;
 
-  @ApiProperty({ example: Role.COACH, required: false, enum: Role })
+  @ApiPropertyOptional({ example: Role.COACH, required: false, enum: Role })
   @IsOptional()
   @IsEnum(Role)
   role?: Role;
