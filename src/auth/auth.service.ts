@@ -4,6 +4,7 @@ import {
   UnauthorizedException,
   NotFoundException,
   BadRequestException,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -21,8 +22,8 @@ import { MailService } from 'src/mail/mail.service';
 import { Role, Specialties, UserStatus } from './enum';
 import { GoogleUser } from './types';
 import { RequestSuspensionReviewDto } from './dto/request-suspension-review.dto';
-import * as ejs from 'ejs';
-import * as path from 'path';
+import { renderEmailTemplate } from 'src/utils/email-template.util';
+import { generateAvatar, getInitials } from 'src/utils/image-generator.util';
 
 @Injectable()
 export class AuthService {
@@ -36,37 +37,50 @@ export class AuthService {
   ) {}
 
   async signup(signupDto: SignupDto) {
-    const existingUser = await this.userRepository.findOne({
-      where: { email: signupDto.email },
-    });
-    if (existingUser) {
-      throw new ConflictException('Email already exists');
+    try {
+      const existingUser = await this.userRepository.findOne({
+        where: { email: signupDto.email },
+      });
+      if (existingUser) {
+        throw new ConflictException('Email already exists');
+      }
+      if (signupDto.password !== signupDto.confirmPassword) {
+        throw new BadRequestException('Passwords do not match');
+      }
+      const hashedPassword = await bcrypt.hash(signupDto.password, 10);
+
+      let profilePicture = signupDto.profilePicture;
+      if (!profilePicture) {
+        const initials = getInitials(signupDto.username);
+        profilePicture = await generateAvatar(initials);
+      }
+
+      const user = this.userRepository.create({
+        ...signupDto,
+        password: hashedPassword,
+        profilePicture,
+        confirmEmail: false,
+        role: signupDto.role || Role.USER, 
+        specialties: signupDto.specialties ? signupDto.specialties.map(specialty => Specialties[specialty]) : [],
+      });
+
+      await this.userRepository.save(user);
+
+      const token = this.jwtService.sign({ email: user.email });
+      const protocol = this.configService.get<string>('APP_PROTOCOL');
+      const host = this.configService.get<string>('APP_HOST');
+      const confirmationUrl = `${protocol}://${host}/auth/confirm-email?token=${token}`;
+      const html = await renderEmailTemplate('confirm-email', { confirmationUrl });
+
+      await this.mailService.sendEmail(user.email, 'Email Confirmation', html);
+
+      return {
+        message: 'User registered successfully. Please check your email to confirm your account.',
+      };
+    } catch (error) {
+      console.error('Error during signup:', error); 
+      throw new InternalServerErrorException('Signup failed. Please try again later.');
     }
-    if (signupDto.password !== signupDto.confirmPassword) {
-      throw new Error('Passwords do not match');
-    }
-    const hashedPassword = await bcrypt.hash(signupDto.password, 10);
-
-    const user = this.userRepository.create({
-      ...signupDto,
-      password: hashedPassword,
-      confirmEmail: false,
-      role: signupDto.role || Role.USER, // Set default role to USER if not specified
-      specialties: signupDto.specialties ? signupDto.specialties.map(specialty => Specialties[specialty]) : [],
-    });
-
-    await this.userRepository.save(user);
-
-    const token = this.jwtService.sign({ email: user.email });
-    const protocol = this.configService.get<string>('APP_PROTOCOL');
-    const host = this.configService.get<string>('APP_HOST');
-    const confirmationUrl = `${protocol}://${host}/auth/confirm-email?token=${token}`;
-    await this.sendConfirmationEmail(user.email, confirmationUrl);
-
-    return {
-      message:
-        'User registered successfully. Please check your email to confirm your account.',
-    };
   }
 
   async signin(signinDto: SigninDto) {
@@ -191,17 +205,13 @@ export class AuthService {
 
   async sendConfirmationEmail(email: string, confirmationUrl: string) {
     const subject = 'Email Confirmation';
-    const templatePath = path.join(process.cwd(), 'src/mail/templates/confirm-email.ejs');
-    const html = await ejs.renderFile(templatePath, { confirmationUrl });
-
+    const html = await renderEmailTemplate('confirm-email', { confirmationUrl });
     await this.mailService.sendEmail(email, subject, html);
   }
 
   private async sendResetPasswordEmail(email: string, resetUrl: string) {
     const subject = 'Password Reset';
-    const templatePath = path.join(process.cwd(), 'src/mail/templates/reset-password.ejs');
-    const html = await ejs.renderFile(templatePath, { resetUrl });
-
+    const html = await renderEmailTemplate('reset-password', { resetUrl });
     await this.mailService.sendEmail(email, subject, html);
   }
 
@@ -217,9 +227,7 @@ export class AuthService {
 
     const supportEmail = this.configService.get<string>('SUPPORT_EMAIL');
     const subject = 'Suspension Review Request';
-    const templatePath = path.join(process.cwd(), 'src/mail/templates/request-suspension-review.ejs');
-    const html = await ejs.renderFile(templatePath, { userEmail: user.email, reason: requestSuspensionReviewDto.reason });
-
+    const html = await renderEmailTemplate('request-suspension-review', { userEmail: user.email, reason: requestSuspensionReviewDto.reason });
     await this.mailService.sendEmail(supportEmail, subject, html);
 
     return { message: 'Suspension review request sent successfully' };

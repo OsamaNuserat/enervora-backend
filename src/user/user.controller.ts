@@ -20,9 +20,8 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { RequestWithUser } from '../types/request-with-user';
-import { diskStorage } from 'multer';
-import { extname } from 'path';
 import { SearchCoachDto } from './dto/search-coach.dto';
+import { multerOptions } from 'src/utils/multer.utils';
 
 @ApiTags('user')
 @Controller('user')
@@ -37,36 +36,7 @@ export class UserController {
         { name: 'profilePicture', maxCount: 1 },
         { name: 'bannerPicture', maxCount: 1 },
       ],
-      {
-        storage: diskStorage({
-          destination: (req, file, cb) => {
-            if (file.fieldname === 'profilePicture') {
-              cb(null, './uploads/profile-pictures');
-            } else if (file.fieldname === 'bannerPicture') {
-              cb(null, './uploads/banner-pictures');
-            }
-          },
-          filename: (req, file, cb) => {
-            const uniqueSuffix =
-              Date.now() + '-' + Math.round(Math.random() * 1e9);
-            const ext = extname(file.originalname);
-            cb(
-              null,
-              `${(req as unknown as RequestWithUser).user.id}-${uniqueSuffix}${ext}`,
-            );
-          },
-        }),
-        fileFilter: (req, file, cb) => {
-          if (
-            file.fieldname === 'profilePicture' ||
-            file.fieldname === 'bannerPicture'
-          ) {
-            cb(null, true);
-          } else {
-            cb(new Error('Invalid field name'), false);
-          }
-        },
-      },
+      multerOptions,
     ),
   )
   @ApiBearerAuth()
