@@ -79,7 +79,7 @@ export class AuthService {
         message: 'User registered successfully. Please check your email to confirm your account.',
       };
     } catch (error) {
-      console.error('Error during signup:', error); // Log the error details
+      console.error('Error during signup:', error);
       throw new InternalServerErrorException('Signup failed. Please try again later.');
     }
   }
@@ -130,7 +130,7 @@ export class AuthService {
         message: 'Coach registered successfully. Please check your email to confirm your account.',
       };
     } catch (error) {
-      console.error('Error during signup:', error); // Log the error details
+      console.error('Error during signup:', error);
       throw new InternalServerErrorException('Signup failed. Please try again later.');
     }
   }
