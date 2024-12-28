@@ -7,7 +7,7 @@ import {
 } from 'typeorm';
 import { Content } from '../../content/entities/content.entity';
 import { Subscription } from '../../subscription/entities/subscription.entity';
-import { Role, ThemePreferences, Category, Specialties } from '../enum';
+import { Role, Category, Specialties } from '../enum';
 import { Payment } from 'src/payment/entities/payment.entity';
 import { Review } from 'src/review/entities/review.entity';
 
@@ -50,13 +50,6 @@ export class User {
   @Column({ nullable: true })
   bio: string;
 
-  @Column({
-    type: 'enum',
-    enum: ThemePreferences,
-    default: ThemePreferences.SYSTEM,
-  })
-  preferences: ThemePreferences;
-
   @Column({ nullable: true })
   phoneNumber: string;
 
@@ -81,11 +74,14 @@ export class User {
   @Column({ default: 0 })
   subscriberCount: number;
 
-  @Column({ nullable: true })
+  @Column()
   country: string;
 
-  @Column({ nullable: true })
+  @Column()
   city: string;
+
+  @Column()
+  postcode: number;
 
   @Column({ type: 'enum', enum: Category, nullable: true })
   category: Category;

@@ -1,9 +1,3 @@
-export enum ThemePreferences {
-  DARK = 'dark',
-  LIGHT = 'light',
-  SYSTEM = 'system',
-}
-
 export enum Role {
   USER = 'user',
   ADMIN = 'admin',

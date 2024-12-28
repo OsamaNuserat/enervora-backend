@@ -9,7 +9,6 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, MoreThan } from 'typeorm';
-import { SignupDto } from './dto/signup.dto';
 import { SigninDto } from './dto/signin.dto';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
@@ -24,6 +23,8 @@ import { GoogleUser } from './types';
 import { RequestSuspensionReviewDto } from './dto/request-suspension-review.dto';
 import { renderEmailTemplate } from 'src/utils/email-template.util';
 import { generateAvatar, getInitials } from 'src/utils/image-generator.util';
+import { SignupUserDto } from './dto/signup-user.dto';
+import { SignupCoachDto } from './dto/signup-coach.dto';
 
 @Injectable()
 export class AuthService {
@@ -36,32 +37,32 @@ export class AuthService {
     private readonly mailService: MailService,
   ) {}
 
-  async signup(signupDto: SignupDto) {
+  async signupUser(signupUserDto: SignupUserDto) {
     try {
       const existingUser = await this.userRepository.findOne({
-        where: { email: signupDto.email },
+        where: { email: signupUserDto.email },
       });
       if (existingUser) {
         throw new ConflictException('Email already exists');
       }
-      if (signupDto.password !== signupDto.confirmPassword) {
+      if (signupUserDto.password !== signupUserDto.confirmPassword) {
         throw new BadRequestException('Passwords do not match');
       }
-      const hashedPassword = await bcrypt.hash(signupDto.password, 10);
+      const hashedPassword = await bcrypt.hash(signupUserDto.password, 10);
 
-      let profilePicture = signupDto.profilePicture;
+      let profilePicture = signupUserDto.profilePicture;
       if (!profilePicture) {
-        const initials = getInitials(signupDto.username);
+        const initials = getInitials(signupUserDto.username);
         profilePicture = await generateAvatar(initials);
       }
 
       const user = this.userRepository.create({
-        ...signupDto,
+        ...signupUserDto,
         password: hashedPassword,
         profilePicture,
         confirmEmail: false,
-        role: signupDto.role || Role.USER, 
-        specialties: signupDto.specialties ? signupDto.specialties.map(specialty => Specialties[specialty]) : [],
+        role: Role.USER,
+        status : UserStatus.ACTIVE,
       });
 
       await this.userRepository.save(user);
@@ -78,7 +79,58 @@ export class AuthService {
         message: 'User registered successfully. Please check your email to confirm your account.',
       };
     } catch (error) {
-      console.error('Error during signup:', error); 
+      console.error('Error during signup:', error); // Log the error details
+      throw new InternalServerErrorException('Signup failed. Please try again later.');
+    }
+  }
+
+  async signupCoach(signupCoachDto: SignupCoachDto) {
+    try {
+      const existingUser = await this.userRepository.findOne({
+        where: { email: signupCoachDto.email },
+      });
+      if (existingUser) {
+        throw new ConflictException('Email already exists');
+      }
+      if (signupCoachDto.password !== signupCoachDto.confirmPassword) {
+        throw new BadRequestException('Passwords do not match');
+      }
+      const hashedPassword = await bcrypt.hash(signupCoachDto.password, 10);
+
+      let profilePicture = signupCoachDto.profilePicture;
+      if (!profilePicture) {
+        const initials = getInitials(signupCoachDto.username);
+        profilePicture = await generateAvatar(initials);
+      }
+
+      const specialties = Array.isArray(signupCoachDto.specialties) ? signupCoachDto.specialties.map(specialty => Specialties[specialty]) : [];
+
+      const user = this.userRepository.create({
+        ...signupCoachDto,
+        password: hashedPassword,
+        profilePicture,
+        confirmEmail: false,
+        role: Role.COACH,
+        specialties,
+        category: signupCoachDto.category,
+        status : UserStatus.ACTIVE,
+      });
+
+      await this.userRepository.save(user);
+
+      const token = this.jwtService.sign({ email: user.email });
+      const protocol = this.configService.get<string>('APP_PROTOCOL');
+      const host = this.configService.get<string>('APP_HOST');
+      const confirmationUrl = `${protocol}://${host}/auth/confirm-email?token=${token}`;
+      const html = await renderEmailTemplate('confirm-email', { confirmationUrl });
+
+      await this.mailService.sendEmail(user.email, 'Email Confirmation', html);
+
+      return {
+        message: 'Coach registered successfully. Please check your email to confirm your account.',
+      };
+    } catch (error) {
+      console.error('Error during signup:', error); // Log the error details
       throw new InternalServerErrorException('Signup failed. Please try again later.');
     }
   }

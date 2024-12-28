@@ -1,6 +1,6 @@
 import { IsOptional, IsString, IsEmail, IsEnum } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
-import { ThemePreferences, Category, Specialties } from 'src/auth/enum';
+import { Category, Specialties } from 'src/auth/enum';
 
 export class UpdateProfileDto {
   @ApiProperty({ example: 'john_doe', required: false })
@@ -27,11 +27,6 @@ export class UpdateProfileDto {
   @IsOptional()
   @IsString()
   bio?: string;
-
-  @ApiProperty({ example: ThemePreferences.DARK, required: false, enum: ThemePreferences })
-  @IsOptional()
-  @IsEnum(ThemePreferences)
-  preferences?: ThemePreferences;
 
   @ApiProperty({ example: '123-456-7890', required: false })
   @IsOptional()

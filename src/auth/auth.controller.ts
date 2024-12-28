@@ -6,7 +6,6 @@ import {
   Query,
   UseGuards,
   Req,
-  Res,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
@@ -21,23 +20,36 @@ import {
   ApiResponse,
   ApiBearerAuth,
 } from '@nestjs/swagger';
-import { SignupDto } from './dto/signup.dto';
 import { SigninDto } from './dto/signin.dto';
 import { Role } from './enum';
 import { RequestWithUser } from 'src/types/request-with-user';
 import { RequestSuspensionReviewDto } from './dto/request-suspension-review.dto';
+import { SignupUserDto } from './dto/signup-user.dto';
+import { SignupCoachDto } from './dto/signup-coach.dto';
 
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Post('signup')
-  @ApiOperation({ summary: 'User signup' })
+  @Post('signup/user')
+  @ApiOperation({ summary: 'User Signup' })
   @ApiResponse({ status: 201, description: 'User registered successfully' })
-  @ApiResponse({ status: 409, description: 'Email already exists' })
-  async signup(@Body() signupDto: SignupDto) {
-    return this.authService.signup(signupDto);
+  @ApiResponse({ status: 400, description: 'Bad Request' })
+  @ApiResponse({ status: 409, description: 'Conflict' })
+  @ApiResponse({ status: 500, description: 'Internal Server Error' })
+  async signupUser(@Body() signupUserDto: SignupUserDto) {
+    return this.authService.signupUser(signupUserDto);
+  }
+
+  @Post('signup/coach')
+  @ApiOperation({ summary: 'Coach Signup' })
+  @ApiResponse({ status: 201, description: 'Coach registered successfully' })
+  @ApiResponse({ status: 400, description: 'Bad Request' })
+  @ApiResponse({ status: 409, description: 'Conflict' })
+  @ApiResponse({ status: 500, description: 'Internal Server Error' })
+  async signupCoach(@Body() signupCoachDto: SignupCoachDto) {
+    return this.authService.signupCoach(signupCoachDto);
   }
 
   @Post('signin')
