@@ -312,4 +312,8 @@ export class AuthService {
 
     return { message: 'Phone number verified successfully' };
   }
+
+  async updateFcmToken(userId: number, fcmToken: string): Promise<void> {
+    await this.userRepository.update(userId, { fcmToken });
+  }
 }

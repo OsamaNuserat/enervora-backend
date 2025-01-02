@@ -187,4 +187,11 @@ export class AuthController {
   async coachOnly() {
     return { message: 'You have access to the coach-only route!' };
   }
+
+  @Post('store-fcm-token')
+  async storeFcmToken(@Body('fcmToken') fcmToken: string, @Req() request: RequestWithUser) {
+    const userId = request.user.id;
+    await this.authService.updateFcmToken(userId, fcmToken);
+    return { message: 'FCM token stored successfully' };
+  }
 }

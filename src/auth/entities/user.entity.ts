@@ -109,4 +109,7 @@ export class User {
 
   @OneToMany(() => Review, review => review.coach)
   coachReviews: Review[];
+
+  @Column()
+  fcmToken: string;
 }
