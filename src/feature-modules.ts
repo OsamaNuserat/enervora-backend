@@ -6,6 +6,7 @@ import { ContentModule } from './content/content.module';
 import { MailModule } from './mail/mail.module';
 import { OtpModule } from './otp/otp.module';
 import { UserModule } from './user/user.module';
+import { NotificationModule } from './notification/notification.module';
 
 export const featureModules = [
   AuthModule,
@@ -16,4 +17,5 @@ export const featureModules = [
   MailModule,
   OtpModule,
   UserModule,
+  NotificationModule
 ];

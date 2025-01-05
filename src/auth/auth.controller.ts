@@ -188,7 +188,11 @@ export class AuthController {
     return { message: 'You have access to the coach-only route!' };
   }
 
+  @UseGuards(AuthGuard('jwt'))
+  @ApiBearerAuth()
   @Post('store-fcm-token')
+  @ApiOperation({ summary: 'Store FCM token' })
+  @ApiResponse({ status: 200, description: 'FCM token stored successfully' })
   async storeFcmToken(@Body('fcmToken') fcmToken: string, @Req() request: RequestWithUser) {
     const userId = request.user.id;
     await this.authService.updateFcmToken(userId, fcmToken);

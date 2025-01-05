@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../auth/entities/user.entity';
 import { ConfigService } from '@nestjs/config';
-import { initializeFirebase, sendPushNotification } from '../utils/firebase.utils';
+// import { initializeFirebase, sendPushNotification } from '../utils/firebase.utils';
 
 @Injectable()
 export class NotificationService {
@@ -12,7 +12,7 @@ export class NotificationService {
     private readonly userRepository: Repository<User>,
     private readonly configService: ConfigService,
   ) {
-    initializeFirebase(this.configService);
+    // initializeFirebase(this.configService);
   }
 
   async createNotification(userId: number, message: string): Promise<void> {
@@ -26,6 +26,6 @@ export class NotificationService {
       throw new Error('User does not have a valid FCM token');
     }
 
-    await sendPushNotification(fcmToken, 'New Notification', message);
+    // await sendPushNotification(fcmToken, 'New Notification', message);
   }
 }
