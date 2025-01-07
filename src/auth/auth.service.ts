@@ -18,7 +18,7 @@ import { User } from './entities/user.entity';
 import { ConfigService } from '@nestjs/config';
 import { OtpService } from 'src/otp/otp.service';
 import { MailService } from 'src/mail/mail.service';
-import { Role, Specialties, UserStatus } from './enum';
+import { CoachStatus, Role, Specialties, UserStatus } from './enum';
 import { GoogleUser } from './types';
 import { RequestSuspensionReviewDto } from './dto/request-suspension-review.dto';
 import { renderEmailTemplate } from 'src/utils/email-template.util';
@@ -114,6 +114,7 @@ export class AuthService {
         specialties,
         category: signupCoachDto.category,
         status : UserStatus.ACTIVE,
+        coachstatus: CoachStatus.PENDING
       });
 
       await this.userRepository.save(user);
@@ -135,6 +136,34 @@ export class AuthService {
     }
   }
 
+  async updateCoachStatus(userId: number, coachstatus: CoachStatus): Promise<User> {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) {
+      throw new Error('User not found');
+    }
+    user.coachstatus = coachstatus;
+    const updatedUser = await this.userRepository.save(user);
+
+    const protocol = this.configService.get<string>('APP_PROTOCOL');
+    const host = this.configService.get<string>('APP_HOST');
+    const html = await renderEmailTemplate('coach-status-update', {
+      name: user.username,
+      status: coachstatus,
+    });
+
+    await this.mailService.sendEmail(
+      user.email,
+      `Coach Application ${coachstatus === CoachStatus.APPROVED ? CoachStatus.APPROVED : CoachStatus.REJECTED}`,
+      html
+    );
+
+    return updatedUser;
+  }
+
+  async getPendingCoaches(): Promise<User[]> {
+    return this.userRepository.find({ where: { role: Role.COACH, coachstatus: CoachStatus.PENDING } });
+  }
+
   async signin(signinDto: SigninDto) {
     const user = await this.userRepository.findOne({ where: { email: signinDto.email } });
     if (!user || !(await bcrypt.compare(signinDto.password, user.password))) {
@@ -149,6 +178,7 @@ export class AuthService {
 
     const accessToken = this.jwtService.sign({ userId: user.id, email: user.email }, { expiresIn: '15m' });
     const refreshToken = this.jwtService.sign({ userId: user.id, email: user.email }, { expiresIn: '7d' });
+
 
     return { accessToken, refreshToken };
   }

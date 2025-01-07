@@ -28,3 +28,9 @@ export enum UserStatus {
     YOGA = 'Yoga',
     MEDITATION = 'Meditation',
   }
+
+  export enum CoachStatus {
+    PENDING = 'Pending',
+    APPROVED = 'Approved',
+    REJECTED = 'Rejected',
+  }

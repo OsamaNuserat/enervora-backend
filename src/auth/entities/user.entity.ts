@@ -112,4 +112,7 @@ export class User {
 
   @Column({ nullable: true })
   fcmToken: string;
+
+  @Column({ nullable: true , default: 'pending' })
+  coachstatus: string;
 }

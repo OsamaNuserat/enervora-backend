@@ -6,6 +6,7 @@ import {
   Query,
   UseGuards,
   Req,
+  Param,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
@@ -21,7 +22,7 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { SigninDto } from './dto/signin.dto';
-import { Role } from './enum';
+import { CoachStatus, Role } from './enum';
 import { RequestWithUser } from 'src/types/request-with-user';
 import { RequestSuspensionReviewDto } from './dto/request-suspension-review.dto';
 import { SignupUserDto } from './dto/signup-user.dto';
@@ -50,6 +51,21 @@ export class AuthController {
   @ApiResponse({ status: 500, description: 'Internal Server Error' })
   async signupCoach(@Body() signupCoachDto: SignupCoachDto) {
     return this.authService.signupCoach(signupCoachDto);
+  }
+
+  @Post('coach/:id/status')
+  @ApiOperation({ summary: 'Update coach status' })
+  @ApiResponse({ status: 200, description: 'Coach status updated successfully' })
+  @ApiResponse({ status: 404, description: 'User not found' })
+  async updateCoachStatus(@Param('id') userId: number, @Body('coachstatus') coachstatus: CoachStatus) {
+    return this.authService.updateCoachStatus(userId, coachstatus);
+  }
+
+  @Get('coaches/pending')
+  @ApiOperation({ summary: 'Get pending coaches' })
+  @ApiResponse({ status: 200, description: 'Pending coaches fetched successfully' })
+  async getPendingCoaches() {
+    return this.authService.getPendingCoaches();
   }
 
   @Post('signin')

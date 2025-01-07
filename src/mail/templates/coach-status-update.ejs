@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Coach Application Status</title>
+</head>
+<body>
+  <h1>Coach Application Status</h1>
+  <% if (status === 'accepted') { %>
+    <p>Congratulations, <%= name %>! Your application to become a coach has been approved.</p>
+    <p>You can now log in and start using your coach account.</p>
+  <% } else if (status === 'rejected') { %>
+    <p>Dear <%= name %>, we regret to inform you that your application to become a coach has been rejected.</p>
+    <p>If you have any questions, please contact us.</p>
+  <% } %>
+  <p>Best regards,<br>The Team</p>
+</body>
+</html>
