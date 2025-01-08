@@ -65,6 +65,8 @@ export class AuthService {
         status : UserStatus.ACTIVE,
       });
 
+      await this.userRepository.save(user);
+
       const token = this.jwtService.sign({ email: user.email });
       const protocol = this.configService.get<string>('APP_PROTOCOL');
       const host = this.configService.get<string>('APP_HOST');
