@@ -65,15 +65,13 @@ export class AuthService {
         status : UserStatus.ACTIVE,
       });
 
-      await this.userRepository.save(user);
-
       const token = this.jwtService.sign({ email: user.email });
       const protocol = this.configService.get<string>('APP_PROTOCOL');
       const host = this.configService.get<string>('APP_HOST');
       const confirmationUrl = `${protocol}://${host}/auth/confirm-email?token=${token}`;
       const html = await renderEmailTemplate('confirm-email', { confirmationUrl });
 
-      await this.mailService.sendEmail(user.email, 'Email Confirmation', html);
+      // await this.mailService.sendEmail(user.email, 'Email Confirmation', html);
 
       return {
         message: 'User registered successfully. Please check your email to confirm your account.',
@@ -125,7 +123,7 @@ export class AuthService {
       const confirmationUrl = `${protocol}://${host}/auth/confirm-email?token=${token}`;
       const html = await renderEmailTemplate('confirm-email', { confirmationUrl });
 
-      await this.mailService.sendEmail(user.email, 'Email Confirmation', html);
+      // await this.mailService.sendEmail(user.email, 'Email Confirmation', html);
 
       return {
         message: 'Coach registered successfully. Please check your email to confirm your account.',
@@ -151,11 +149,11 @@ export class AuthService {
       status: coachstatus,
     });
 
-    await this.mailService.sendEmail(
-      user.email,
-      `Coach Application ${coachstatus === CoachStatus.APPROVED ? CoachStatus.APPROVED : CoachStatus.REJECTED}`,
-      html
-    );
+    // await this.mailService.sendEmail(
+    //   user.email,
+    //   `Coach Application ${coachstatus === CoachStatus.APPROVED ? CoachStatus.APPROVED : CoachStatus.REJECTED}`,
+    //   html
+    // );
 
     return updatedUser;
   }
@@ -288,13 +286,13 @@ export class AuthService {
   async sendConfirmationEmail(email: string, confirmationUrl: string) {
     const subject = 'Email Confirmation';
     const html = await renderEmailTemplate('confirm-email', { confirmationUrl });
-    await this.mailService.sendEmail(email, subject, html);
+    // await this.mailService.sendEmail(email, subject, html);
   }
 
   private async sendResetPasswordEmail(email: string, resetUrl: string) {
     const subject = 'Password Reset';
     const html = await renderEmailTemplate('reset-password', { resetUrl });
-    await this.mailService.sendEmail(email, subject, html);
+    // await this.mailService.sendEmail(email, subject, html);
   }
 
   async requestSuspensionReview(userId: number, requestSuspensionReviewDto: RequestSuspensionReviewDto) {
@@ -310,7 +308,7 @@ export class AuthService {
     const supportEmail = this.configService.get<string>('SUPPORT_EMAIL');
     const subject = 'Suspension Review Request';
     const html = await renderEmailTemplate('request-suspension-review', { userEmail: user.email, reason: requestSuspensionReviewDto.reason });
-    await this.mailService.sendEmail(supportEmail, subject, html);
+    // await this.mailService.sendEmail(supportEmail, subject, html);
 
     return { message: 'Suspension review request sent successfully' };
   }
