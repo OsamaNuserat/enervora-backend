@@ -73,7 +73,7 @@ export class AuthService {
       const confirmationUrl = `${protocol}://${host}/auth/confirm-email?token=${token}`;
       const html = await renderEmailTemplate('confirm-email', { confirmationUrl });
 
-      // await this.mailService.sendEmail(user.email, 'Email Confirmation', html);
+      await this.mailService.sendEmail(user.email, 'Email Confirmation', html);
 
       return {
         message: 'User registered successfully. Please check your email to confirm your account.',
@@ -116,8 +116,6 @@ export class AuthService {
         status : UserStatus.ACTIVE,
         coachstatus: CoachStatus.PENDING
       });
-
-      await this.userRepository.save(user);
 
       const token = this.jwtService.sign({ email: user.email });
       const protocol = this.configService.get<string>('APP_PROTOCOL');
@@ -195,7 +193,6 @@ export class AuthService {
         confirmEmail: true,
         role: Role.USER, 
       });
-      await this.userRepository.save(existingUser);
     }
 
     const accessToken = this.jwtService.sign({ userId: existingUser.id, email: existingUser.email }, { expiresIn: '15m' });
