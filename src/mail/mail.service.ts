@@ -7,17 +7,19 @@ export class MailService {
 
   constructor() {
     this.transporter = nodemailer.createTransport({
-      service: 'gmail',
+      host: process.env.SMTP_HOST,
+      port: parseInt(process.env.SMTP_PORT, 10),
+      secure: process.env.SMTP_SECURE === 'true',
       auth: {
-        user: process.env.GMAIL_USER,
-        pass: process.env.GMAIL_PASS,
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
       },
     });
   }
 
   async sendEmail(to: string, subject: string, html: string) {
     const mailOptions = {
-      from: process.env.GMAIL_USER,
+      from: process.env.SMTP_USER,
       to,
       subject,
       html,
