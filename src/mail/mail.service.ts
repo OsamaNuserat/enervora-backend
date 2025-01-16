@@ -23,6 +23,11 @@ export class MailService {
       html,
     };
 
-    await this.transporter.sendMail(mailOptions);
+    try {
+      await this.transporter.sendMail(mailOptions);
+      console.log(`Email sent to ${to}`);
+    } catch (error) {
+      console.error(`Failed to send email to ${to}:`, error);
+    }
   }
 }

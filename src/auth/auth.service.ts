@@ -123,7 +123,7 @@ export class AuthService {
       const confirmationUrl = `${protocol}://${host}/auth/confirm-email?token=${token}`;
       const html = await renderEmailTemplate('confirm-email', { confirmationUrl });
 
-      // await this.mailService.sendEmail(user.email, 'Email Confirmation', html);
+      await this.mailService.sendEmail(user.email, 'Email Confirmation', html);
 
       return {
         message: 'Coach registered successfully. Please check your email to confirm your account.',
