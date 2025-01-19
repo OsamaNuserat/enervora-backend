@@ -1,31 +1,18 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { User } from '../auth/entities/user.entity';
-import { ConfigService } from '@nestjs/config';
-// import { initializeFirebase, sendPushNotification } from '../utils/firebase.utils';
+import { FirebaseUtils } from 'src/utils/firebase.utils';
 
 @Injectable()
 export class NotificationService {
-  constructor(
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
-    private readonly configService: ConfigService,
+  async sendPushNotification(
+    tokens: string[],
+    title: string,
+    body: string,
+    data: Record<string, any> = {},
   ) {
-    // initializeFirebase(this.configService);
-  }
-
-  async createNotification(userId: number, message: string): Promise<void> {
-    const user = await this.userRepository.findOne({ where: { id: userId } });
-    if (!user) {
-      throw new Error('User not found');
+    try {
+      return await FirebaseUtils.sendNotification(tokens, title, body, data);
+    } catch (error) {
+      throw new Error(`Failed to send notification: ${error.message}`);
     }
-
-    const fcmToken = user.fcmToken;
-    if (!fcmToken) {
-      throw new Error('User does not have a valid FCM token');
-    }
-
-    // await sendPushNotification(fcmToken, 'New Notification', message);
   }
 }

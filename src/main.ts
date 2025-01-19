@@ -14,8 +14,8 @@ async function bootstrap() {
 
 
   const config = new DocumentBuilder()
-    .setTitle('TrainHub API')
-    .setDescription('API documentation for TrainHub')
+    .setTitle('VitalityShare API')
+    .setDescription('API documentation for VitalityShare')
     .setVersion('1.0')
     .addBearerAuth()
     .build();

@@ -49,12 +49,12 @@ export class SignupCoachDto {
   @IsEnum(Specialties, { each: true })
   specialties: Specialties[];
 
-  @ApiProperty({ example: 'USA' })
+  @ApiProperty({ example: 'Jordan' })
   @IsNotEmpty()
   @IsString()
   country: string;
 
-  @ApiProperty({ example: 'New York' })
+  @ApiProperty({ example: ' Amman' })
   @IsNotEmpty()
   @IsString()
   city: string;

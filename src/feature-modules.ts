@@ -17,5 +17,5 @@ export const featureModules = [
   MailModule,
   OtpModule,
   UserModule,
-  NotificationModule
+  NotificationModule,
 ];
