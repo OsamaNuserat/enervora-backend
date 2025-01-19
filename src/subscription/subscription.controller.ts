@@ -10,61 +10,61 @@ import { Role } from 'src/auth/enum';
 @ApiTags('subscription')
 @Controller('subscription')
 export class SubscriptionController {
-  constructor(private readonly subscriptionService: SubscriptionService) {}
+    constructor(private readonly subscriptionService: SubscriptionService) {}
 
-  @Post()
-  @UseGuards(AuthGuard('jwt'))
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Create subscription' })
-  @ApiResponse({ status: 201, description: 'Subscription created successfully' })
-  @ApiResponse({ status: 404, description: 'User or Coach not found' })
-  @ApiResponse({ status: 400, description: 'User already has an active subscription with this coach' })
-  async create(@Req() req: RequestWithUser, @Body() createSubscriptionDto: CreateSubscriptionDto) {
-    return this.subscriptionService.create(createSubscriptionDto, req.user.id);
-  }
-
-  @Get()
-  @UseGuards(AuthGuard('jwt'))
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get all subscriptions' })
-  @ApiResponse({ status: 200, description: 'Subscriptions retrieved successfully' })
-  async findAll(@Req() req: RequestWithUser) {
-    if (req.user.role === Role.ADMIN) {
-      return this.subscriptionService.findAll();
-    } else if (req.user.role === Role.COACH) {
-      return this.subscriptionService.findAllByCoach(req.user.id);
-    } else if (req.user.role === Role.USER) {
-      return this.subscriptionService.findAllByUser(req.user.id);
-    } else {
-      throw new BadRequestException('Invalid role');
+    @Post()
+    @UseGuards(AuthGuard('jwt'))
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Create subscription' })
+    @ApiResponse({ status: 201, description: 'Subscription created successfully' })
+    @ApiResponse({ status: 404, description: 'User or Coach not found' })
+    @ApiResponse({ status: 400, description: 'User already has an active subscription with this coach' })
+    async create(@Req() req: RequestWithUser, @Body() createSubscriptionDto: CreateSubscriptionDto) {
+        return this.subscriptionService.create(createSubscriptionDto, req.user.id);
     }
-  }
 
-  @Get(':id')
-  @ApiOperation({ summary: 'Get subscription by ID' })
-  @ApiResponse({ status: 200, description: 'Subscription retrieved successfully' })
-  @ApiResponse({ status: 404, description: 'Subscription not found' })
-  findOne(@Param('id') id: string) {
-    return this.subscriptionService.findOne(+id);
-  }
+    @Get()
+    @UseGuards(AuthGuard('jwt'))
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Get all subscriptions' })
+    @ApiResponse({ status: 200, description: 'Subscriptions retrieved successfully' })
+    async findAll(@Req() req: RequestWithUser) {
+        if (req.user.role === Role.ADMIN) {
+            return this.subscriptionService.findAll();
+        } else if (req.user.role === Role.COACH) {
+            return this.subscriptionService.findAllByCoach(req.user.id);
+        } else if (req.user.role === Role.USER) {
+            return this.subscriptionService.findAllByUser(req.user.id);
+        } else {
+            throw new BadRequestException('Invalid role');
+        }
+    }
 
-  @Patch(':id')
-  @UseGuards(AuthGuard('jwt'))
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Update subscription' })
-  @ApiResponse({ status: 200, description: 'Subscription updated successfully' })
-  @ApiResponse({ status: 404, description: 'Subscription not found' })
-  update(@Param('id') id: string, @Body() updateSubscriptionDto: UpdateSubscriptionDto) {
-    return this.subscriptionService.update(+id, updateSubscriptionDto);
-  }
+    @Get(':id')
+    @ApiOperation({ summary: 'Get subscription by ID' })
+    @ApiResponse({ status: 200, description: 'Subscription retrieved successfully' })
+    @ApiResponse({ status: 404, description: 'Subscription not found' })
+    findOne(@Param('id') id: string) {
+        return this.subscriptionService.findOne(+id);
+    }
 
-  @Patch('unsubscribe/:id')
-  @UseGuards(AuthGuard('jwt'))
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Unsubscribe' })
-  @ApiResponse({ status: 200, description: 'Unsubscribed successfully' })
-  @ApiResponse({ status: 404, description: 'Subscription not found' })
-  unsubscribe(@Req() req: RequestWithUser) {
-    return this.subscriptionService.unsubscribe(req.user.id);
-  }
+    @Patch(':id')
+    @UseGuards(AuthGuard('jwt'))
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Update subscription' })
+    @ApiResponse({ status: 200, description: 'Subscription updated successfully' })
+    @ApiResponse({ status: 404, description: 'Subscription not found' })
+    update(@Param('id') id: string, @Body() updateSubscriptionDto: UpdateSubscriptionDto) {
+        return this.subscriptionService.update(+id, updateSubscriptionDto);
+    }
+
+    @Patch('unsubscribe/:id')
+    @UseGuards(AuthGuard('jwt'))
+    @ApiBearerAuth()
+    @ApiOperation({ summary: 'Unsubscribe' })
+    @ApiResponse({ status: 200, description: 'Unsubscribed successfully' })
+    @ApiResponse({ status: 404, description: 'Subscription not found' })
+    unsubscribe(@Req() req: RequestWithUser) {
+        return this.subscriptionService.unsubscribe(req.user.id);
+    }
 }

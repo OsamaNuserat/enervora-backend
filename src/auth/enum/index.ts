@@ -1,21 +1,21 @@
 export enum Role {
-  USER = 'user',
-  ADMIN = 'admin',
-  COACH = 'coach',
+    USER = 'user',
+    ADMIN = 'admin',
+    COACH = 'coach'
 }
 
 export enum UserStatus {
     ACTIVE = 'Active',
-    SUSPENDED = 'Suspended',
-  }
+    SUSPENDED = 'Suspended'
+}
 
-  export enum Category {
+export enum Category {
     FITNESS = 'Fitness',
     HEALTH = 'Health',
-    MINDSET = 'Mindset',
-  }
-  
-  export enum Specialties {
+    MINDSET = 'Mindset'
+}
+
+export enum Specialties {
     WEIGHTLIFTING = 'Weightlifting',
     CARDIO = 'Cardio',
     NUTRITION = 'Nutrition',
@@ -26,11 +26,11 @@ export enum UserStatus {
     GOAL_SETTING = 'Goal Setting',
     POSITIVE_THINKING = 'Positive Thinking',
     YOGA = 'Yoga',
-    MEDITATION = 'Meditation',
-  }
+    MEDITATION = 'Meditation'
+}
 
-  export enum CoachStatus {
+export enum CoachStatus {
     PENDING = 'Pending',
     APPROVED = 'Approved',
-    REJECTED = 'Rejected',
-  }
+    REJECTED = 'Rejected'
+}

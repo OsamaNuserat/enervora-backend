@@ -2,16 +2,16 @@ import { IsNumber, IsDate, IsOptional, IsEnum } from 'class-validator';
 import { PaymentMethod } from '../enums';
 
 export class CreatePaymentDto {
-  @IsNumber()
-  subscriptionId: number;
+    @IsNumber()
+    subscriptionId: number;
 
-  @IsNumber()
-  amount: number;
+    @IsNumber()
+    amount: number;
 
-  @IsOptional()
-  @IsDate()
-  paymentDate?: Date;
+    @IsOptional()
+    @IsDate()
+    paymentDate?: Date;
 
-  @IsEnum(PaymentMethod)
-  paymentMethod: PaymentMethod;
+    @IsEnum(PaymentMethod)
+    paymentMethod: PaymentMethod;
 }

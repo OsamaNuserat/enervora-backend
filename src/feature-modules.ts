@@ -9,13 +9,13 @@ import { UserModule } from './user/user.module';
 import { NotificationModule } from './notification/notification.module';
 
 export const featureModules = [
-  AuthModule,
-  PaymentModule,
-  SubscriptionModule,
-  ReviewModule,
-  ContentModule,
-  MailModule,
-  OtpModule,
-  UserModule,
-  NotificationModule,
+    AuthModule,
+    PaymentModule,
+    SubscriptionModule,
+    ReviewModule,
+    ContentModule,
+    MailModule,
+    OtpModule,
+    UserModule,
+    NotificationModule
 ];

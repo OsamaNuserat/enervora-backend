@@ -3,6 +3,7 @@
 VitalityShare is a backend application built with NestJS, designed to streamline gym coaching services. It provides features like OAuth-based authentication, role-based access control, and scalable APIs for managing users, coaches, and training programs.
 
 ## Features
+
 - OAuth authentication with Google.
 - Role-based access control for admin, coach, and user roles.
 - API endpoints for managing gym-related resources.
@@ -11,6 +12,7 @@ VitalityShare is a backend application built with NestJS, designed to streamline
 ## Getting Started
 
 ### Prerequisites
+
 - Node.js (>=16.x)
 - NPM (>=8.x) or Yarn
 
@@ -30,6 +32,7 @@ VitalityShare is a backend application built with NestJS, designed to streamline
     ```
 
 3. Set up the environment variables:
+
     - Create a `.env` file in the root directory.
     - Add the following:
 
@@ -52,10 +55,12 @@ VitalityShare is a backend application built with NestJS, designed to streamline
 ## Usage
 
 ### Authentication
+
 - **Login via Google:** `[GET] /auth/google`
 - **Callback after login:** `[GET] /auth/google/callback`
 
 ### Protected Routes
+
 - **Admin-only route:** `[GET] /auth/admin-only`
 - **Coach-only route:** `[GET] /auth/coach-only`
 
@@ -67,12 +72,12 @@ VitalityShare is a backend application built with NestJS, designed to streamline
 
 ## Scripts
 
-| Script        | Description                        |
-| ------------- | ---------------------------------- |
-| `start`       | Run the app in production.         |
-| `start:dev`   | Run the app in development.        |
-| `test`        | Run tests.                         |
-| `build`       | Build the app for production.     |
+| Script      | Description                   |
+| ----------- | ----------------------------- |
+| `start`     | Run the app in production.    |
+| `start:dev` | Run the app in development.   |
+| `test`      | Run tests.                    |
+| `build`     | Build the app for production. |
 
 ## Folder Structure
 
@@ -87,3 +92,4 @@ src/
 │   └── decorators/          # Custom role-based decorators
 ├── users/                   # User management module
 └── main.ts                  # Application entry point
+```

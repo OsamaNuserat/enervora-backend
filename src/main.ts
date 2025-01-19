@@ -8,20 +8,19 @@ import { GlobalExceptionFilter } from './common/filters/all-exceptions.filter';
 dotenv.config();
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-  app.useGlobalPipes(new ValidationPipe());
-  app.useGlobalFilters(new GlobalExceptionFilter());
+    const app = await NestFactory.create(AppModule);
+    app.useGlobalPipes(new ValidationPipe());
+    app.useGlobalFilters(new GlobalExceptionFilter());
 
+    const config = new DocumentBuilder()
+        .setTitle('VitalityShare API')
+        .setDescription('API documentation for VitalityShare')
+        .setVersion('1.0')
+        .addBearerAuth()
+        .build();
+    const document = SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('api', app, document);
 
-  const config = new DocumentBuilder()
-    .setTitle('VitalityShare API')
-    .setDescription('API documentation for VitalityShare')
-    .setVersion('1.0')
-    .addBearerAuth()
-    .build();
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document);
-
-  await app.listen(process.env.PORT ?? 3000);
+    await app.listen(process.env.PORT ?? 3000);
 }
 bootstrap();

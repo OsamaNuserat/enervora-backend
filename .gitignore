@@ -60,3 +60,4 @@ uploads/
 vitalityshare-firebase-adminsdk-16bqz-63c315f5c7.json
 index.txt
 firebase-messaging-sw.js
+.prettierrc

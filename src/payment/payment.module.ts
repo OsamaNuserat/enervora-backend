@@ -7,13 +7,9 @@ import { AuthModule } from '../auth/auth.module';
 import { SubscriptionModule } from '../subscription/subscription.module';
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([Payment]),
-    AuthModule,
-    forwardRef(() => SubscriptionModule), 
-  ],
-  controllers: [PaymentController],
-  providers: [PaymentService],
-  exports: [PaymentService],
+    imports: [TypeOrmModule.forFeature([Payment]), AuthModule, forwardRef(() => SubscriptionModule)],
+    controllers: [PaymentController],
+    providers: [PaymentService],
+    exports: [PaymentService]
 })
 export class PaymentModule {}

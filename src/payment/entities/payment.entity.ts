@@ -5,24 +5,24 @@ import { PaymentMethod } from '../enums';
 
 @Entity()
 export class Payment {
-  @PrimaryGeneratedColumn()
-  id: number;
+    @PrimaryGeneratedColumn()
+    id: number;
 
-  @ManyToOne(() => Subscription, subscription => subscription.payments)
-  subscription: Subscription;
+    @ManyToOne(() => Subscription, subscription => subscription.payments)
+    subscription: Subscription;
 
-  @ManyToOne(() => User, user => user.payments)
-  user: User;
+    @ManyToOne(() => User, user => user.payments)
+    user: User;
 
-  @Column()
-  amount: number;
+    @Column()
+    amount: number;
 
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-  paymentDate: Date;
+    @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+    paymentDate: Date;
 
-  @Column({ type: 'enum', enum: PaymentMethod })
-  paymentMethod: PaymentMethod;
+    @Column({ type: 'enum', enum: PaymentMethod })
+    paymentMethod: PaymentMethod;
 
-  @Column({ unique: true })
-  transactionId: string;
+    @Column({ unique: true })
+    transactionId: string;
 }

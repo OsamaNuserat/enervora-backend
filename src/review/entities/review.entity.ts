@@ -3,21 +3,21 @@ import { User } from '../../auth/entities/user.entity';
 
 @Entity()
 export class Review {
-  @PrimaryGeneratedColumn()
-  id: number;
+    @PrimaryGeneratedColumn()
+    id: number;
 
-  @ManyToOne(() => User, user => user.reviews)
-  user: User;
+    @ManyToOne(() => User, user => user.reviews)
+    user: User;
 
-  @ManyToOne(() => User, user => user.coachReviews)
-  coach: User;
+    @ManyToOne(() => User, user => user.coachReviews)
+    coach: User;
 
-  @Column()
-  rating: number;
+    @Column()
+    rating: number;
 
-  @Column()
-  comment: string;
+    @Column()
+    comment: string;
 
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-  createdAt: Date;
+    @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+    createdAt: Date;
 }

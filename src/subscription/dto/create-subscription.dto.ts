@@ -2,17 +2,17 @@ import { IsEnum, IsString, IsNumber, IsBoolean, IsOptional } from 'class-validat
 import { SubscriptionType } from '../enums';
 
 export class CreateSubscriptionDto {
-  @IsEnum(SubscriptionType)
-  subscriptionType: SubscriptionType;
+    @IsEnum(SubscriptionType)
+    subscriptionType: SubscriptionType;
 
-  @IsString()
-  @IsOptional()
-  paymentHistory?: string;
+    @IsString()
+    @IsOptional()
+    paymentHistory?: string;
 
-  @IsNumber()
-  coachId: number;
+    @IsNumber()
+    coachId: number;
 
-  @IsBoolean()
-  @IsOptional()
-  autoRenewal?: boolean;
+    @IsBoolean()
+    @IsOptional()
+    autoRenewal?: boolean;
 }

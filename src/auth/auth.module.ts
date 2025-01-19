@@ -12,25 +12,25 @@ import { OtpModule } from '../otp/otp.module';
 import { MailModule } from 'src/mail/mail.module';
 
 @Module({
-  imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-    }),
-    PassportModule.register({ defaultStrategy: 'jwt' }),
-    JwtModule.registerAsync({
-      imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => ({
-        secret: configService.get<string>('JWT_SECRET'),
-        signOptions: { expiresIn: '1h' },
-      }),
-      inject: [ConfigService],
-    }),
-    TypeOrmModule.forFeature([User]),
-    OtpModule,
-    MailModule,
-  ],
-  providers: [AuthService, GoogleStrategy, JwtStrategy],
-  controllers: [AuthController],
-  exports: [TypeOrmModule], 
+    imports: [
+        ConfigModule.forRoot({
+            isGlobal: true
+        }),
+        PassportModule.register({ defaultStrategy: 'jwt' }),
+        JwtModule.registerAsync({
+            imports: [ConfigModule],
+            useFactory: async (configService: ConfigService) => ({
+                secret: configService.get<string>('JWT_SECRET'),
+                signOptions: { expiresIn: '1h' }
+            }),
+            inject: [ConfigService]
+        }),
+        TypeOrmModule.forFeature([User]),
+        OtpModule,
+        MailModule
+    ],
+    providers: [AuthService, GoogleStrategy, JwtStrategy],
+    controllers: [AuthController],
+    exports: [TypeOrmModule]
 })
 export class AuthModule {}

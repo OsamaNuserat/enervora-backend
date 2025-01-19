@@ -4,27 +4,27 @@ import { ContentCategory } from '../enums';
 
 @Entity()
 export class Content {
-  @PrimaryGeneratedColumn()
-  id: number;
+    @PrimaryGeneratedColumn()
+    id: number;
 
-  @Column()
-  title: string;
+    @Column()
+    title: string;
 
-  @Column()
-  description: string;
+    @Column()
+    description: string;
 
-  @Column()
-  mediaUrl: string;
+    @Column()
+    mediaUrl: string;
 
-  @Column({
-    type: 'enum',
-    enum: ContentCategory,
-  })
-  category: ContentCategory;
+    @Column({
+        type: 'enum',
+        enum: ContentCategory
+    })
+    category: ContentCategory;
 
-  @Column({ default: false })
-  isSubscriptionBased: boolean;
+    @Column({ default: false })
+    isSubscriptionBased: boolean;
 
-  @ManyToOne(() => User, (user) => user.contents)
-  user: User;
+    @ManyToOne(() => User, user => user.contents)
+    user: User;
 }
