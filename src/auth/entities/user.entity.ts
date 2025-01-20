@@ -104,9 +104,6 @@ export class User {
     @OneToMany(() => Review, review => review.coach)
     coachReviews: Review[];
 
-    @Column({ nullable: true })
-    fcmToken: string;
-
     @Column({ nullable: true, default: 'pending' })
     coachstatus: string;
 }

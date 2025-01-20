@@ -16,7 +16,6 @@ import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 import { User } from './entities/user.entity';
 import { ConfigService } from '@nestjs/config';
-import { OtpService } from 'src/otp/otp.service';
 import { MailService } from 'src/mail/mail.service';
 import { CoachStatus, Role, Specialties, UserStatus } from './enum';
 import { GoogleUser } from './types';
@@ -25,6 +24,10 @@ import { renderEmailTemplate } from 'src/utils/email-template.util';
 import { generateAvatar, getInitials } from 'src/utils/image-generator.util';
 import { SignupUserDto } from './dto/signup-user.dto';
 import { SignupCoachDto } from './dto/signup-coach.dto';
+import { sendOTP, generateOTP, verifyOTP } from '../utils/otp';
+
+// Temporary storage for OTPs (replace with a proper storage solution)
+const otpStorage: Record<string, { otp: string; expiresAt: Date }> = {};
 
 @Injectable()
 export class AuthService {
@@ -33,7 +36,6 @@ export class AuthService {
         private readonly userRepository: Repository<User>,
         private readonly jwtService: JwtService,
         private readonly configService: ConfigService,
-        private readonly otpService: OtpService,
         private readonly mailService: MailService
     ) {}
 
@@ -298,13 +300,13 @@ export class AuthService {
     async sendConfirmationEmail(email: string, confirmationUrl: string) {
         const subject = 'Email Confirmation';
         const html = await renderEmailTemplate('confirm-email', { confirmationUrl });
-        // await this.mailService.sendEmail(email, subject, html);
+        await this.mailService.sendEmail(email, subject, html);
     }
 
     private async sendResetPasswordEmail(email: string, resetUrl: string) {
         const subject = 'Password Reset';
         const html = await renderEmailTemplate('reset-password', { resetUrl });
-        // await this.mailService.sendEmail(email, subject, html);
+        await this.mailService.sendEmail(email, subject, html);
     }
 
     async requestSuspensionReview(userId: number, requestSuspensionReviewDto: RequestSuspensionReviewDto) {
@@ -323,40 +325,22 @@ export class AuthService {
             userEmail: user.email,
             reason: requestSuspensionReviewDto.reason
         });
-        // await this.mailService.sendEmail(supportEmail, subject, html);
+        await this.mailService.sendEmail(supportEmail, subject, html);
 
         return { message: 'Suspension review request sent successfully' };
     }
 
-    async sendOtp(userId: number) {
-        const user = await this.userRepository.findOne({ where: { id: userId } });
-        if (!user) {
-            throw new NotFoundException('User not found');
-        }
-
-        const otpSid = await this.otpService.sendOtp(user.phoneNumber);
-        return { message: 'OTP sent successfully', otpSid };
+    async sendOTP(phoneNumber: string): Promise<void> {
+        const { otp, expiresAt } = generateOTP(); 
+        await sendOTP(phoneNumber, otp); 
+        otpStorage[phoneNumber] = { otp, expiresAt }; 
     }
 
-    async verifyOtp(userId: number, otp: string) {
-        const user = await this.userRepository.findOne({ where: { id: userId } });
-        if (!user) {
-            throw new NotFoundException('User not found');
+    async verifyOTP(phoneNumber: string, otp: string): Promise<string> {
+        const otpData = otpStorage[phoneNumber]; 
+        if (!otpData) {
+            throw new Error('OTP not found for this phone number');
         }
-
-        const status = await this.otpService.verifyOtp(user.phoneNumber, otp);
-        if (status !== 'approved') {
-            throw new BadRequestException('Invalid or expired OTP');
-        }
-
-        user.otp = null;
-        user.otpExpires = null;
-        await this.userRepository.save(user);
-
-        return { message: 'Phone number verified successfully' };
-    }
-
-    async updateFcmToken(userId: number, fcmToken: string): Promise<void> {
-        await this.userRepository.update(userId, { fcmToken });
+        return verifyOTP(otpData, otp); 
     }
 }

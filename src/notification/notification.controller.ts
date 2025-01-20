@@ -1,17 +1,13 @@
 import { Controller, Post, Body } from '@nestjs/common';
 import { NotificationService } from './notification.service';
+import { SendNotificationDto } from './dto/send-notification.dto';
 
 @Controller('notification')
 export class NotificationController {
     constructor(private readonly notificationService: NotificationService) {}
 
     @Post('send')
-    async sendNotification(
-        @Body('tokens') tokens: string[],
-        @Body('title') title: string,
-        @Body('body') body: string,
-        @Body('data') data: Record<string, any>
-    ) {
-        return this.notificationService.sendPushNotification(tokens, title, body, data);
+    async sendNotification(@Body() sendNotificationDto: SendNotificationDto) {
+        return this.notificationService.sendPushNotification(sendNotificationDto);
     }
 }

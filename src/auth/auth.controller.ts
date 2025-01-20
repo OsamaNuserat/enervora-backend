@@ -126,30 +126,6 @@ export class AuthController {
         return this.authService.changePassword(req.user.id, changePasswordDto);
     }
 
-    @Post('send-otp')
-    @UseGuards(AuthGuard('jwt'))
-    @ApiBearerAuth()
-    @ApiOperation({ summary: 'Send OTP for phone number verification' })
-    @ApiResponse({ status: 200, description: 'OTP sent successfully' })
-    @ApiResponse({ status: 404, description: 'User not found' })
-    async sendOtp(@Req() req: RequestWithUser) {
-        return this.authService.sendOtp(req.user.id);
-    }
-
-    @Post('verify-otp')
-    @UseGuards(AuthGuard('jwt'))
-    @ApiBearerAuth()
-    @ApiOperation({ summary: 'Verify OTP for phone number' })
-    @ApiResponse({
-        status: 200,
-        description: 'Phone number verified successfully'
-    })
-    @ApiResponse({ status: 400, description: 'Invalid or expired OTP' })
-    @ApiResponse({ status: 404, description: 'User not found' })
-    async verifyOtp(@Req() req: RequestWithUser, @Body('otp') otp: string) {
-        return this.authService.verifyOtp(req.user.id, otp);
-    }
-
     @Get('google')
     @UseGuards(AuthGuard('google'))
     @ApiOperation({ summary: 'Google authentication' })
@@ -184,14 +160,15 @@ export class AuthController {
         return { message: 'You have access to the coach-only route!' };
     }
 
-    @UseGuards(AuthGuard('jwt'))
-    @ApiBearerAuth()
-    @Post('store-fcm-token')
-    @ApiOperation({ summary: 'Store FCM token' })
-    @ApiResponse({ status: 200, description: 'FCM token stored successfully' })
-    async storeFcmToken(@Body('fcmToken') fcmToken: string, @Req() request: RequestWithUser) {
-        const userId = request.user.id;
-        await this.authService.updateFcmToken(userId, fcmToken);
-        return { message: 'FCM token stored successfully' };
+    @Post('send-otp')
+    async sendOTP(@Body('phoneNumber') phoneNumber: string): Promise<{ message: string }> {
+        await this.authService.sendOTP(phoneNumber);
+        return { message: 'OTP sent successfully' };
+    }
+
+    @Post('verify-otp')
+    async verifyOTP(@Body('phoneNumber') phoneNumber: string, @Body('otp') otp: string): Promise<{ message: string }> {
+        await this.authService.verifyOTP(phoneNumber, otp);
+        return { message: 'OTP verified successfully' };
     }
 }

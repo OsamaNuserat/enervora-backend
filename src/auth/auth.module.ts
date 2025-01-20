@@ -8,7 +8,6 @@ import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { User } from './entities/user.entity';
-import { OtpModule } from '../otp/otp.module';
 import { MailModule } from 'src/mail/mail.module';
 
 @Module({
@@ -26,7 +25,6 @@ import { MailModule } from 'src/mail/mail.module';
             inject: [ConfigService]
         }),
         TypeOrmModule.forFeature([User]),
-        OtpModule,
         MailModule
     ],
     providers: [AuthService, GoogleStrategy, JwtStrategy],

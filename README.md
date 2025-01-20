@@ -8,6 +8,7 @@ VitalityShare is a backend application built with NestJS, designed to streamline
 - Role-based access control for admin, coach, and user roles.
 - API endpoints for managing gym-related resources.
 - Scalable and modular architecture with NestJS.
+- **Notification System**: Send notifications to users via Firebase Cloud Messaging.
 
 ## Getting Started
 
@@ -42,6 +43,9 @@ VitalityShare is a backend application built with NestJS, designed to streamline
     GOOGLE_CLIENT_ID=your_google_client_id
     GOOGLE_CLIENT_SECRET=your_google_client_secret
     GOOGLE_CALLBACK_URL=http://localhost:3000/auth/google/callback
+    FIREBASE_PROJECT_ID=your_firebase_project_id
+    FIREBASE_CLIENT_EMAIL=your_firebase_client_email
+    FIREBASE_PRIVATE_KEY=your_firebase_private_key
     ```
 
 4. Start the application:
@@ -58,6 +62,19 @@ VitalityShare is a backend application built with NestJS, designed to streamline
 
 - **Login via Google:** `[GET] /auth/google`
 - **Callback after login:** `[GET] /auth/google/callback`
+
+### Notifications
+
+- **Send a notification:** `[POST] /notification/send`
+  - **Request Body:**
+    ```json
+    {
+      "tokens": ["device_token1", "device_token2"],
+      "title": "Notification Title",
+      "body": "Notification Body",
+      "data": { "key": "value" }  // Optional
+    }
+    ```
 
 ### Protected Routes
 
@@ -90,6 +107,10 @@ src/
 │   ├── strategies/          # OAuth and JWT strategies
 │   ├── guards/              # Role-based guards
 │   └── decorators/          # Custom role-based decorators
+├── notification/            # Notification module
+│   ├── notification.controller.ts  # Handles notification routes
+│   ├── notification.service.ts     # Contains notification logic
+│   ├── dto/                   # Data Transfer Objects for notifications
+│   └── notification.module.ts  # Notification module setup
 ├── users/                   # User management module
 └── main.ts                  # Application entry point
-```

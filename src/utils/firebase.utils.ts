@@ -1,4 +1,5 @@
 import * as admin from 'firebase-admin';
+import { SendNotificationDto } from 'src/notification/dto/send-notification.dto';
 
 export class FirebaseUtils {
     private static initialized = false;
@@ -16,8 +17,10 @@ export class FirebaseUtils {
         }
     }
 
-    static async sendNotification(tokens: string[], title: string, body: string, data: Record<string, any> = {}) {
+    static async sendNotification(SendNotificationDto: SendNotificationDto) {
         this.initialize();
+
+        const { tokens, title, body, data } = SendNotificationDto;
 
         const payload = {
             notification: {
