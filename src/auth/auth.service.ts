@@ -16,7 +16,7 @@ import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 import { User } from './entities/user.entity';
 import { ConfigService } from '@nestjs/config';
-import { MailService } from 'src/mail/mail.service';
+import { MailService } from '../mail/mail.service';
 import { CoachStatus, Role, Specialties, UserStatus } from './enum';
 import { GoogleUser } from './types';
 import { RequestSuspensionReviewDto } from './dto/request-suspension-review.dto';
@@ -73,9 +73,8 @@ export class AuthService {
             const protocol = this.configService.get<string>('APP_PROTOCOL');
             const host = this.configService.get<string>('APP_HOST');
             const confirmationUrl = `${protocol}://${host}/auth/confirm-email?token=${token}`;
-            const html = await renderEmailTemplate('confirm-email', { confirmationUrl });
 
-            await this.mailService.sendEmail(user.email, 'Email Confirmation', html);
+            await this.mailService.sendEmail(user.email, 'Email Confirmation', 'confirm-email', { confirmationUrl });
 
             return {
                 message: 'User registered successfully. Please check your email to confirm your account.'
@@ -127,9 +126,8 @@ export class AuthService {
             const protocol = this.configService.get<string>('APP_PROTOCOL');
             const host = this.configService.get<string>('APP_HOST');
             const confirmationUrl = `${protocol}://${host}/auth/confirm-email?token=${token}`;
-            const html = await renderEmailTemplate('confirm-email', { confirmationUrl });
 
-            await this.mailService.sendEmail(user.email, 'Email Confirmation', html);
+            await this.mailService.sendEmail(user.email, 'Email Confirmation', 'confirm-email', { confirmationUrl });
 
             return {
                 message: 'Coach registered successfully. Please check your email to confirm your account.'
@@ -299,15 +297,13 @@ export class AuthService {
 
     async sendConfirmationEmail(email: string, confirmationUrl: string) {
         const subject = 'Email Confirmation';
-        const html = await renderEmailTemplate('confirm-email', { confirmationUrl });
-        await this.mailService.sendEmail(email, subject, html);
-    }
-
-    private async sendResetPasswordEmail(email: string, resetUrl: string) {
+        await this.mailService.sendEmail(email, subject, 'confirm-email', { confirmationUrl });
+      }
+    
+      private async sendResetPasswordEmail(email: string, resetUrl: string) {
         const subject = 'Password Reset';
-        const html = await renderEmailTemplate('reset-password', { resetUrl });
-        await this.mailService.sendEmail(email, subject, html);
-    }
+        await this.mailService.sendEmail(email, subject, 'reset-password', { resetUrl });
+      }
 
     async requestSuspensionReview(userId: number, requestSuspensionReviewDto: RequestSuspensionReviewDto) {
         const user = await this.userRepository.findOne({ where: { id: userId } });
@@ -318,14 +314,6 @@ export class AuthService {
         if (user.status !== UserStatus.SUSPENDED) {
             throw new BadRequestException('User is not suspended');
         }
-
-        const supportEmail = this.configService.get<string>('SUPPORT_EMAIL');
-        const subject = 'Suspension Review Request';
-        const html = await renderEmailTemplate('request-suspension-review', {
-            userEmail: user.email,
-            reason: requestSuspensionReviewDto.reason
-        });
-        await this.mailService.sendEmail(supportEmail, subject, html);
 
         return { message: 'Suspension review request sent successfully' };
     }

@@ -19,6 +19,6 @@
         "noFallthroughCasesInSwitch": false,
         "types": ["node"]
     },
-    "include": ["src/**/*.ts", "src/mail/templates/**/*.ejs"],
+    "include": ["src/**/*.ts",  "src/mail/templates/**/*"],
     "exclude": ["node_modules", "dist"]
 }

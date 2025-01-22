@@ -7,7 +7,7 @@ import { Subscription } from './entities/subscription.entity';
 import { User } from '../auth/entities/user.entity';
 import { Role } from 'src/auth/enum';
 import { SubscriptionType } from './enums';
-import { MailService } from '../mail/mail.service';
+// import { MailService } from '../mail/mail.service';
 import { PaymentService } from '../payment/payment.service';
 import * as moment from 'moment';
 import { CreatePaymentDto } from 'src/payment/dto/create-payment.dto';
@@ -19,7 +19,7 @@ export class SubscriptionService {
         private readonly subscriptionRepository: Repository<Subscription>,
         @InjectRepository(User)
         private readonly userRepository: Repository<User>,
-        private readonly mailService: MailService,
+        // private readonly mailService: MailService,
         private readonly paymentService: PaymentService
     ) {}
 
@@ -155,21 +155,21 @@ export class SubscriptionService {
         await this.userRepository.update(coachId, { subscriberCount });
     }
 
-    async sendNotifications() {
-        const subscriptions = await this.subscriptionRepository.find();
-        const now = new Date();
-        for (const subscription of subscriptions) {
-            if (subscription.endDate < now && !subscription.notificationSent) {
-                // Send notification to the user
-                const user = subscription.user;
-                const subject = 'Subscription Expiry Notification';
-                const text = `Dear ${user.username}, your subscription will expire soon. Please renew your subscription to continue enjoying our services.`;
+    // async sendNotifications() {
+    //     const subscriptions = await this.subscriptionRepository.find();
+    //     const now = new Date();
+    //     for (const subscription of subscriptions) {
+    //         if (subscription.endDate < now && !subscription.notificationSent) {
+    //             // Send notification to the user
+    //             const user = subscription.user;
+    //             const subject = 'Subscription Expiry Notification';
+    //             const text = `Dear ${user.username}, your subscription will expire soon. Please renew your subscription to continue enjoying our services.`;
 
-                await this.mailService.sendEmail(user.email, subject, text);
+    //             await this.mailService.sendEmail(user.email, subject, 'template', context);
 
-                subscription.notificationSent = true;
-                await this.subscriptionRepository.save(subscription);
-            }
-        }
-    }
+    //             subscription.notificationSent = true;
+    //             await this.subscriptionRepository.save(subscription);
+    //         }
+    //     }
+    // }
 }
