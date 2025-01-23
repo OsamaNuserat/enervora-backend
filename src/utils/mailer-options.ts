@@ -8,12 +8,14 @@ export function buildMailerOptions(config: ConfigService): MailerOptions {
     transport: {
       host: config.getOrThrow<string>('MAILER_HOST'),
       port: config.getOrThrow<number>('MAILER_PORT'),
-      secure: config.getOrThrow<boolean>('MAILER_SECURE'),
+      secure: config.getOrThrow<string>('MAILER_SECURE') === 'true',
       auth: {
         user: config.getOrThrow<string>('MAILER_USER'),
         pass: config.getOrThrow<string>('MAILER_PASS'),
       },
       pool: true,
+      logger: true,
+      debug: true,
     },
     defaults: {
       from: `"No Reply" <${config.getOrThrow<string>('MAILER_USER')}>`,
