@@ -154,22 +154,4 @@ export class SubscriptionService {
 
         await this.userRepository.update(coachId, { subscriberCount });
     }
-
-    // async sendNotifications() {
-    //     const subscriptions = await this.subscriptionRepository.find();
-    //     const now = new Date();
-    //     for (const subscription of subscriptions) {
-    //         if (subscription.endDate < now && !subscription.notificationSent) {
-    //             // Send notification to the user
-    //             const user = subscription.user;
-    //             const subject = 'Subscription Expiry Notification';
-    //             const text = `Dear ${user.username}, your subscription will expire soon. Please renew your subscription to continue enjoying our services.`;
-
-    //             await this.mailService.sendEmail(user.email, subject, 'template', context);
-
-    //             subscription.notificationSent = true;
-    //             await this.subscriptionRepository.save(subscription);
-    //         }
-    //     }
-    // }
 }
