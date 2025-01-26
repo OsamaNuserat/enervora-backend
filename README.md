@@ -66,15 +66,15 @@ VitalityShare is a backend application built with NestJS, designed to streamline
 ### Notifications
 
 - **Send a notification:** `[POST] /notification/send`
-  - **Request Body:**
-    ```json
-    {
-      "tokens": ["device_token1", "device_token2"],
-      "title": "Notification Title",
-      "body": "Notification Body",
-      "data": { "key": "value" }  // Optional
-    }
-    ```
+    - **Request Body:**
+        ```json
+        {
+            "tokens": ["device_token1", "device_token2"],
+            "title": "Notification Title",
+            "body": "Notification Body",
+            "data": { "key": "value" } // Optional
+        }
+        ```
 
 ### Protected Routes
 
@@ -114,3 +114,4 @@ src/
 │   └── notification.module.ts  # Notification module setup
 ├── users/                   # User management module
 └── main.ts                  # Application entry point
+```

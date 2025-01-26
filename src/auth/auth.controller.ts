@@ -1,8 +1,6 @@
 import { Controller, Get, Post, Body, Query, UseGuards, Req, Param } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
-import { Roles } from './decorators/roles.decorator';
-import { RolesGuard } from './guards/roles.guard';
 import { ForgotPasswordDto } from './dto/forgot-password.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { ResetPasswordDto } from './dto/reset-password.dto';
@@ -138,37 +136,5 @@ export class AuthController {
     @ApiOperation({ summary: 'Google authentication callback' })
     async googleAuthRedirect(@Req() req) {
         return this.authService.googleSignin(req.user);
-    }
-
-    @Get('admin-only')
-    @UseGuards(AuthGuard('jwt'), RolesGuard)
-    @Roles(Role.ADMIN)
-    @ApiBearerAuth()
-    @ApiOperation({ summary: 'Admin only route' })
-    @ApiResponse({ status: 200, description: 'Access granted' })
-    async adminOnly() {
-        return { message: 'You have access to the admin-only route!' };
-    }
-
-    @Get('coach-only')
-    @UseGuards(AuthGuard('jwt'), RolesGuard)
-    @Roles(Role.COACH)
-    @ApiBearerAuth()
-    @ApiOperation({ summary: 'Coach only route' })
-    @ApiResponse({ status: 200, description: 'Access granted' })
-    async coachOnly() {
-        return { message: 'You have access to the coach-only route!' };
-    }
-
-    @Post('send-otp')
-    async sendOTP(@Body('phoneNumber') phoneNumber: string): Promise<{ message: string }> {
-        await this.authService.sendOTP(phoneNumber);
-        return { message: 'OTP sent successfully' };
-    }
-
-    @Post('verify-otp')
-    async verifyOTP(@Body('phoneNumber') phoneNumber: string, @Body('otp') otp: string): Promise<{ message: string }> {
-        await this.authService.verifyOTP(phoneNumber, otp);
-        return { message: 'OTP verified successfully' };
     }
 }

@@ -20,14 +20,9 @@ import { MailService } from '../mail/mail.service';
 import { CoachStatus, Role, Specialties, UserStatus } from './enum';
 import { GoogleUser } from './types';
 import { RequestSuspensionReviewDto } from './dto/request-suspension-review.dto';
-import { renderEmailTemplate } from 'src/utils/email-template.util';
 import { generateAvatar, getInitials } from 'src/utils/image-generator.util';
 import { SignupUserDto } from './dto/signup-user.dto';
 import { SignupCoachDto } from './dto/signup-coach.dto';
-import { sendOTP, generateOTP, verifyOTP } from '../utils/otp';
-
-// Temporary storage for OTPs (replace with a proper storage solution)
-const otpStorage: Record<string, { otp: string; expiresAt: Date }> = {};
 
 @Injectable()
 export class AuthService {
@@ -145,19 +140,6 @@ export class AuthService {
         }
         user.coachstatus = coachstatus;
         const updatedUser = await this.userRepository.save(user);
-
-        const protocol = this.configService.get<string>('APP_PROTOCOL');
-        const host = this.configService.get<string>('APP_HOST');
-        const html = await renderEmailTemplate('coach-status-update', {
-            name: user.username,
-            status: coachstatus
-        });
-
-        // await this.mailService.sendEmail(
-        //   user.email,
-        //   `Coach Application ${coachstatus === CoachStatus.APPROVED ? CoachStatus.APPROVED : CoachStatus.REJECTED}`,
-        //   html
-        // );
 
         return updatedUser;
     }
@@ -298,12 +280,12 @@ export class AuthService {
     async sendConfirmationEmail(email: string, confirmationUrl: string) {
         const subject = 'Email Confirmation';
         await this.mailService.sendEmail(email, subject, 'confirm-email', { confirmationUrl });
-      }
-    
-      private async sendResetPasswordEmail(email: string, resetUrl: string) {
+    }
+
+    private async sendResetPasswordEmail(email: string, resetUrl: string) {
         const subject = 'Password Reset';
         await this.mailService.sendEmail(email, subject, 'reset-password', { resetUrl });
-      }
+    }
 
     async requestSuspensionReview(userId: number, requestSuspensionReviewDto: RequestSuspensionReviewDto) {
         const user = await this.userRepository.findOne({ where: { id: userId } });
@@ -316,19 +298,5 @@ export class AuthService {
         }
 
         return { message: 'Suspension review request sent successfully' };
-    }
-
-    async sendOTP(phoneNumber: string): Promise<void> {
-        const { otp, expiresAt } = generateOTP(); 
-        await sendOTP(phoneNumber, otp); 
-        otpStorage[phoneNumber] = { otp, expiresAt }; 
-    }
-
-    async verifyOTP(phoneNumber: string, otp: string): Promise<string> {
-        const otpData = otpStorage[phoneNumber]; 
-        if (!otpData) {
-            throw new Error('OTP not found for this phone number');
-        }
-        return verifyOTP(otpData, otp); 
     }
 }
