@@ -1,13 +1,13 @@
 import { Twilio } from 'twilio';
-import * as dotenv from 'dotenv';
+import { ConfigService } from '@nestjs/config';
 
-dotenv.config();
+let client: Twilio;
 
-const accountSid = process.env.TWILIO_ACCOUNT_SID;
-const authToken = process.env.TWILIO_AUTH_TOKEN;
-const twilioPhoneNumber = process.env.TWILIO_PHONE_NUMBER;
-
-const client = new Twilio(accountSid, authToken);
+export function initializeTwilio(configService: ConfigService): void {
+    const accountSid = configService.get<string>('TWILIO_ACCOUNT_SID');
+    const authToken = configService.get<string>('TWILIO_AUTH_TOKEN');
+    client = new Twilio(accountSid, authToken);
+}
 
 export function generateOTP(): { otp: string; expiresAt: Date } {
     try {
@@ -21,30 +21,16 @@ export function generateOTP(): { otp: string; expiresAt: Date } {
     }
 }
 
-export async function sendOTP(phoneNumber: string, otp: string): Promise<void> {
+export async function sendOTP(configService: ConfigService, phoneNumber: string, otp: string): Promise<void> {
     try {
+        const twilioPhoneNumber = configService.get<string>('TWILIO_PHONE_NUMBER');
         await client.messages.create({
-            body: `Your OTP is: ${otp}`,
+            body: `Your OTP is ${otp}`,
             from: twilioPhoneNumber,
-            to: phoneNumber
+            to: phoneNumber,
         });
     } catch (error) {
         console.error('Error sending OTP:', error);
         throw new Error('Failed to send OTP');
-    }
-}
-
-export function verifyOTP(otpData: { otp: string; expiresAt: Date }, otp: string): string {
-    try {
-        if (new Date() > otpData.expiresAt) {
-            throw new Error('OTP has expired');
-        }
-        if (otpData.otp !== otp) {
-            throw new Error('Invalid OTP');
-        }
-        return 'approved';
-    } catch (error) {
-        console.error('Error verifying OTP:', error);
-        throw new Error('Failed to verify OTP');
     }
 }

@@ -17,7 +17,7 @@
         "strictBindCallApply": false,
         "forceConsistentCasingInFileNames": true,
         "noFallthroughCasesInSwitch": false,
-        "types": ["node", "jest"]
+        "types": ["node"]
     },
     "include": ["src/**/*.ts", "src/mail/templates/**/*", "test/**/*.spec.ts"],
     "exclude": ["node_modules", "dist"]

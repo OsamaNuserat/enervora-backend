@@ -8,10 +8,10 @@ import { GoogleProfile } from '../types';
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     constructor(configService: ConfigService) {
         super({
-            clientID: configService.get('GOOGLE_CLIENT_ID'),
-            clientSecret: configService.get('GOOGLE_CLIENT_SECRET'),
-            callbackURL: configService.get('GOOGLE_CALLBACK_URL'),
-            scope: ['email', 'profile']
+            clientID: configService.get<string>('GOOGLE_CLIENT_ID'),
+            clientSecret: configService.get<string>('GOOGLE_CLIENT_SECRET'),
+            callbackURL: configService.get<string>('GOOGLE_CALLBACK_URL'),
+            scope: ['email', 'profile'],
         });
     }
 
@@ -27,7 +27,8 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
             firstName: name.givenName,
             lastName: name.familyName,
             picture: photos[0].value,
-            accessToken
+            accessToken,
+            refreshToken
         };
         done(null, user);
     }
