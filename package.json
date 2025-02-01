@@ -18,7 +18,8 @@
         "test:cov": "jest --coverage",
         "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
         "test:e2e": "jest --config ./test/jest-e2e.json --passWithNoTests",
-        "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,md}\""
+        "format": "prettier --write \"**/*.{js,jsx,ts,tsx,json,css,md}\"",
+        "install:clean": "rm -rf node_modules/ && rm -rf package-lock.json && npm install && npm start:dev"
     },
     "dependencies": {
         "@nestjs-modules/mailer": "^2.0.2",
