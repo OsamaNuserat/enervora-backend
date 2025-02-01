@@ -1,19 +1,28 @@
-# Stage 1: Build the app
-FROM node:18 AS builder
+FROM node:18
+
+RUN apt-get update && apt-get install -y \
+    python3 \
+    make \
+    g++ \
+    libcairo2-dev \
+    libjpeg-dev \
+    libpango1.0-dev \
+    libgif-dev \
+    libpng-dev && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN npm install -g @nestjs/cli
+
 WORKDIR /app
-COPY package*.json ./
-RUN npm ci --omit=dev
+
+COPY package.json package-lock.json ./
+
+RUN npm install --only=production
+
 COPY . .
+
 RUN npm run build
 
-# Stage 2: Run the app
-FROM node:18
-WORKDIR /app
-COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/uploads ./uploads  # Persist uploads/
-
-# Expose port and start the app
 EXPOSE 3000
-CMD ["node", "dist/main.js"]
+
+CMD ["node", "dist/main"]

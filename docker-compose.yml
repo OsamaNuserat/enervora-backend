@@ -1,34 +1,17 @@
-version: '3.8'
-
+version: '3'
 services:
   app:
-    build: .
+    container_name: vitalityshare-app
+    build:
+      context: .
     ports:
-      - "3000:3000"
+      - "3000:3000" 
+    networks:
+      - vitalityshare-net
+    restart: always
     env_file:
       - .env
-    volumes:
-      - ./uploads:/app/uploads
-    networks:
-      - backend
-    depends_on:
-      - mysql
-
-  mysql:
-    image: mysql:8.0
-    env_file:
-      - .env
-    volumes:
-      - mysql_data:/var/lib/mysql
-    networks:
-      - backend
-    environment:
-      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
-      MYSQL_DATABASE: ${DB_NAME}
-
-volumes:
-  mysql_data:
 
 networks:
-  backend:
+  vitalityshare-net:
     driver: bridge
