@@ -13,8 +13,8 @@ async function bootstrap() {
     const configService = app.get(ConfigService);
 
     const config = new DocumentBuilder()
-        .setTitle('VitalityShare API')
-        .setDescription('API documentation for VitalityShare')
+        .setTitle('Enervora API')
+        .setDescription('API documentation for Enervora')
         .setVersion('1.0')
         .addBearerAuth()
         .build();
