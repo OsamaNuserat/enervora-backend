@@ -39,7 +39,14 @@ export async function generateAvatar(username: string): Promise<string> {
         ctx.textBaseline = 'middle';
         ctx.fillText(initials, 128, 128);
 
-        const filePath = path.join(__dirname, '../../uploads/profile-pictures', `${username}-avatar.png`);
+        const uploadDir = path.join(__dirname, '../../uploads/profile-pictures');
+        
+        // Create directory if it doesn't exist
+        if (!fs.existsSync(uploadDir)) {
+            fs.mkdirSync(uploadDir, { recursive: true });
+        }
+        
+        const filePath = path.join(uploadDir, `${username}-avatar.png`);
         const buffer = canvas.toBuffer('image/png');
         fs.writeFileSync(filePath, buffer);
 
