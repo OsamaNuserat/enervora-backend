@@ -11,10 +11,10 @@ async function bootstrap() {
     app.useGlobalFilters(new GlobalExceptionFilter());
 
     app.enableCors({
-        origin: (origin, callback) => {
-            callback(null, true);
-        }
-    });
+        origin: '*',  
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+        allowedHeaders: ['Content-Type', 'Authorization'],
+      });
 
     const configService = app.get(ConfigService);
 
