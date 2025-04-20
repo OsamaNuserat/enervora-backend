@@ -10,6 +10,12 @@ async function bootstrap() {
     app.useGlobalPipes(new ValidationPipe());
     app.useGlobalFilters(new GlobalExceptionFilter());
 
+    app.enableCors({
+        origin: (origin, callback) => {
+            callback(null, true);
+        }
+    });
+
     const configService = app.get(ConfigService);
 
     const config = new DocumentBuilder()
